@@ -1,4 +1,5 @@
-require_relative "api"
+require_relative "customers/api"
+require_relative "usages/api"
 require_relative "util"
 
 module MetrifoxSdk
@@ -19,52 +20,81 @@ module MetrifoxSdk
 
     def check_access(request_payload)
       validate_api_key!
-      MetrifoxSdk::API.fetch_access(@base_url, @api_key, request_payload)
+      usages_api.fetch_access(@base_url, @api_key, request_payload)
     end
 
     def record_usage(request_payload)
       validate_api_key!
-      MetrifoxSdk::API.fetch_usage(@base_url, @api_key, request_payload)
+      usages_api.fetch_usage(
+        @base_url,
+        @api_key,
+        request_payload
+      )
     end
 
     def get_tenant_id
       validate_api_key!
-      MetrifoxSdk::API.fetch_tenant_id(@base_url, @api_key)
+      usages_api.fetch_tenant_id(@base_url, @api_key)
     end
 
     def get_checkout_key
       validate_api_key!
-      MetrifoxSdk::API.fetch_checkout_key(@base_url, @api_key)
+      usages_api.fetch_checkout_key(@base_url, @api_key)
     end
 
     def create_customer(request_payload)
       validate_api_key!
-      MetrifoxSdk::API.customer_create_request(@base_url, @api_key, request_payload)
+      customers_api.customer_create_request(
+        @base_url,
+        @api_key,
+        request_payload
+      )
     end
 
     def update_customer(customer_key, request_payload)
       validate_api_key!
-      MetrifoxSdk::API.customer_update_request(@base_url, @api_key, customer_key, request_payload)
+      customers_api.customer_update_request(
+        @base_url,
+        @api_key,
+        customer_key,
+        request_payload
+      )
     end
 
     def get_customer(request_payload)
       validate_api_key!
-      MetrifoxSdk::API.customer_get_request(@base_url, @api_key, request_payload)
+      customers_api.customer_get_request(
+        @base_url,
+        @api_key,
+        request_payload
+      )
     end
 
     def get_customer_details(request_payload)
       validate_api_key!
-      MetrifoxSdk::API.customer_details_get_request(@base_url, @api_key, request_payload)
+      customers_api.customer_details_get_request(
+        @base_url,
+        @api_key,
+        request_payload
+      )
     end
 
     def delete_customer(request_payload)
       validate_api_key!
-      MetrifoxSdk::API.customer_delete_request(@base_url, @api_key, request_payload)
+      customers_api.customer_delete_request(
+        @base_url,
+        @api_key,
+        request_payload
+      )
     end
 
     def upload_customers_csv(file_path)
       validate_api_key!
-      MetrifoxSdk::API.upload_customers_csv(@base_url, @api_key, file_path)
+      customers_api.upload_customers_csv(
+        @base_url,
+        @api_key,
+        file_path
+      )
     end
 
     def set_api_key(api_key)
@@ -86,6 +116,14 @@ module MetrifoxSdk
       if @api_key.nil? || @api_key.empty?
         raise ConfigurationError, "API key required. Set it via config or METRIFOX_API_KEY environment variable."
       end
+    end
+
+    def usages_api
+      @usages_api ||= MetrifoxSdk::Usages::API.new
+    end
+
+    def customers_api
+      @customers_api ||= MetrifoxSdk::Customers::API.new
     end
   end
 end

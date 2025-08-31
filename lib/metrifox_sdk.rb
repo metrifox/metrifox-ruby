@@ -1,8 +1,10 @@
 require_relative "metrifox_sdk/version"
 require_relative "metrifox_sdk/client"
 require_relative "metrifox_sdk/types"
-require_relative "metrifox_sdk/api"
 require_relative "metrifox_sdk/util"
+require_relative "metrifox_sdk/base_api"
+require_relative "metrifox_sdk/customers/api"
+require_relative "metrifox_sdk/usages/api"
 
 module MetrifoxSDK
   class << self
@@ -51,7 +53,7 @@ module MetrifoxSDK
 
     def client
       @client ||= begin
-                    load_dotenv
+                    UtilMethods.load_dotenv
                     Client.new
                   end
     end

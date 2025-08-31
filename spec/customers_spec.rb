@@ -400,6 +400,67 @@ RSpec.describe MetrifoxSdk::Client do
     end
   end
 
+  describe "#get_customer_details" do
+    let(:expected_response) do
+      {
+        "statusCode" => 200,
+        "message" => "Customer Retrieved Successfully",
+        "meta" => {},
+        "data" => {
+          "metrifox_id" => "8cd3bde1-96ca-4f01-b015-aad9ce861e91",
+          "customer_key" => customer_key,
+          "subscriptions" => [],
+          "entitlements" => [],
+          "wallets" => []
+        },
+        "errors" => {}
+      }
+    end
+
+    it "fetches a customer details successfully" do
+      stub_request(:get, "#{base_url}customers/#{customer_key}/details")
+        .with(
+          headers: {
+            'x-api-key' => api_key,
+            'Content-Type' => 'application/json'
+          }
+        )
+        .to_return(
+          status: 200,
+          body: expected_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = client.get_customer_details({ customer_key: customer_key })
+      expect(result).to eq(expected_response)
+      expect(result["statusCode"]).to eq(200)
+      expect(result["data"]["customer_key"]).to eq(customer_key)
+      expect(result["data"]["subscriptions"]).to eq([])
+      expect(result["data"]["entitlements"]).to eq([])
+      expect(result["data"]["wallets"]).to eq([])
+    end
+
+    it "handles customer not found" do
+      error_response = {
+        "statusCode" => 404,
+        "message" => "Customer not found",
+        "meta" => {},
+        "data" => nil,
+        "errors" => {}
+      }
+
+      stub_request(:get, "#{base_url}customers/#{customer_key}")
+        .to_return(
+          status: 404,
+          body: error_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      expect { client.get_customer({ customer_key: customer_key }) }
+        .to raise_error(MetrifoxSdk::APIError, /Failed to Fetch Customer: 404/)
+    end
+  end
+
   describe "#update_customer" do
     let(:update_payload) do
       {
