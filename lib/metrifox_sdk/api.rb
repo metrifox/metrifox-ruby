@@ -73,6 +73,13 @@ module MetrifoxSdk
         parse_response(response, "Failed to Fetch Customer")
       end
 
+      def customer_details_get_request(base_url, api_key, request_payload)
+        customer_key = request_payload[:customer_key] || request_payload.customer_key
+        uri = URI.join(base_url, "customers/#{customer_key}/details")
+        response = make_request(uri, "GET", api_key)
+        parse_response(response, "Failed to Fetch Customer Details")
+      end
+
       def upload_customers_csv(base_url, api_key, file_path)
         uri = URI.join(base_url, "customers/csv-upload")
 

@@ -35,6 +35,10 @@ module MetrifoxSDK
       client.get_customer(request_payload)
     end
 
+    def get_customer_details(request_payload)
+      client.get_customer_details(request_payload)
+    end
+
     def delete_customer(request_payload)
       client.delete_customer(request_payload)
     end

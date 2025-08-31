@@ -52,6 +52,11 @@ module MetrifoxSdk
       MetrifoxSdk::API.customer_get_request(@base_url, @api_key, request_payload)
     end
 
+    def get_customer_details(request_payload)
+      validate_api_key!
+      MetrifoxSdk::API.customer_details_get_request(@base_url, @api_key, request_payload)
+    end
+
     def delete_customer(request_payload)
       validate_api_key!
       MetrifoxSdk::API.customer_delete_request(@base_url, @api_key, request_payload)
