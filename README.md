@@ -89,6 +89,9 @@ response = MetrifoxSDK.update_customer("customer_123", update_data)
 # Get customer
 response = MetrifoxSDK.get_customer({ customer_key: "customer_123" })
 
+# Get customer details
+response = MetrifoxSDK.get_customer_details({ customer_key: "customer_123" })
+
 # Delete customer
 response = MetrifoxSDK.delete_customer({ customer_key: "customer_123" })
 ```
