@@ -1,20 +1,20 @@
 require_relative 'lib/metrifox_sdk/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "metrifox_sdk"
+  spec.name          = "metrifox-sdk"
   spec.version       = MetrifoxSdk::VERSION
   spec.authors       = ["TheCodeNinja"]
   spec.email         = ["ibrahim@metrifox.com"]
 
   spec.summary       = "Ruby SDK for Metrifox API"
   spec.description   = "A Ruby SDK for interacting with the Metrifox platform API"
-  spec.homepage      = "https://github.com/metrifox/metrifox_ruby_sdk"
+  spec.homepage      = "https://github.com/metrifox/metrifox-ruby"
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 2.7.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/metrifox/metrifox_ruby_sdk"
-  spec.metadata["changelog_uri"] = "https://github.com/metrifox/metrifox_ruby_sdk/blob/main/CHANGELOG.md"
+  spec.metadata["source_code_uri"] = "https://github.com/metrifox/metrifox-ruby"
+  spec.metadata["changelog_uri"] = "https://github.com/metrifox/metrifox-ruby/tree/main/CHANGELOG.md"
 
   # Specify which files should be added to the gem when it is released.
   spec.files = Dir["lib/**/*", "README.md", "LICENSE", "CHANGELOG.md"]
