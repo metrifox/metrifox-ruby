@@ -88,8 +88,29 @@ response = MetrifoxSDK.customers.get_customer({ customer_key: "customer_123" })
 # Get customer details
 response = MetrifoxSDK.customers.get_details({ customer_key: "customer_123" })
 
+# List customers
+response = MetrifoxSDK.customers.list
+
+# List customers with pagination
+response = MetrifoxSDK.customers.list({ page: 2, per_page: 10 })
+
+# List customers with filters
+response = MetrifoxSDK.customers.list({ 
+  search_term: "TechStart",
+  customer_type: "BUSINESS",
+  date_created: "2025-09-01"
+})
+
+# List customers with combined pagination and filters
+response = MetrifoxSDK.customers.list({ 
+  page: 1,
+  per_page: 5,
+  search_term: "John",
+  customer_type: "INDIVIDUAL"
+})
+
 # Delete customer
-response = MetrifoxSDK.delete_customer({ customer_key: "customer_123" })
+response = MetrifoxSDK.customers.delete_customer({ customer_key: "customer_123" })
 ```
 
 ### CSV Upload
