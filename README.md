@@ -7,7 +7,7 @@ A Ruby SDK for interacting with the Metrifox platform API.
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'metrifox_sdk'
+gem 'metrifox-sdk'
 ```
 
 And then execute:
@@ -19,7 +19,7 @@ $ bundle install
 Or install it yourself as:
 
 ```bash
-$ gem install metrifox_sdk
+$ gem install metrifox-sdk
 ```
 
 ## Usage
