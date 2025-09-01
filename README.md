@@ -34,14 +34,14 @@ MetrifoxSDK.init({ api_key: "your-api-key"})
 
 # Or set environment variable
 ENV["METRIFOX_API_KEY"] = "your-api-key"
-MetrifoxSDK.init
+METRIFOX_SDK = MetrifoxSDK.init
 ```
 
 ### Access Control
 
 ```ruby
 # Check feature access
-response = MetrifoxSDK.usages.check_access({
+response = METRIFOX_SDK.usages.check_access({
   feature_key: "premium_feature",
   customer_key: "customer_123"
 })
@@ -53,7 +53,7 @@ puts response["can_access"] # true/false
 
 ```ruby
 # Record usage event
-response = MetrifoxSDK.usages.record_usage({
+response = METRIFOX_SDK.usages.record_usage({
   customer_key: "customer_123",
   event_name: "api_call",
   amount: 1
@@ -72,7 +72,7 @@ customer_data = {
   display_name: "ACME"
 }
 
-response = MetrifoxSDK.customers.create(customer_data)
+response = METRIFOX_SDK.customers.create(customer_data)
 
 # Update customer
 update_data = {
@@ -80,13 +80,13 @@ update_data = {
   website_url: "https://acme.com"
 }
 
-response = MetrifoxSDK.customers.update("customer_123", update_data)
+response = METRIFOX_SDK.customers.update("customer_123", update_data)
 
 # Get customer
-response = MetrifoxSDK.customers.get_customer({ customer_key: "customer_123" })
+response = METRIFOX_SDK.customers.get_customer({ customer_key: "customer_123" })
 
 # Get customer details
-response = MetrifoxSDK.customers.get_details({ customer_key: "customer_123" })
+response = METRIFOX_SDK.customers.get_details({ customer_key: "customer_123" })
 
 # List customers
 response = MetrifoxSDK.customers.list
@@ -111,13 +111,14 @@ response = MetrifoxSDK.customers.list({
 
 # Delete customer
 response = MetrifoxSDK.customers.delete_customer({ customer_key: "customer_123" })
+
 ```
 
 ### CSV Upload
 
 ```ruby
 # Upload customers via CSV
-response = MetrifoxSDK.customers.upload_csv("/path/to/customers.csv")
+response = METRIFOX_SDK.customers.upload_csv("/path/to/customers.csv")
 
 puts response["data"]["total_customers"]
 puts response["data"]["successful_upload_count"]
@@ -164,7 +165,7 @@ response = MetrifoxSDK.customers.create(customer_request)
 
 ```ruby
 begin
-  response = MetrifoxSDK.usages.check_access({
+  response = METRIFOX_SDK.usages.check_access({
     feature_key: "premium_feature",
     customer_key: "customer_123"
   })
