@@ -127,11 +127,8 @@ puts response["data"]["successful_upload_count"]
 ### Using Client Instance
 
 ```ruby
-client = MetrifoxSDK::Client.new({
-  api_key: "your-api-key"
-})
 
-response = client.usages.check_access({
+response = METRIFOX_SDK.usages.check_access({
   feature_key: "premium_feature",
   customer_key: "customer_123"
 })
@@ -148,7 +145,7 @@ access_request = MetrifoxSDK::Types::AccessCheckRequest.new(
   customer_key: "customer_123"
 )
 
-response = MetrifoxSDK.usages.check_access(access_request)
+response = METRIFOX_SDK.usages.check_access(access_request)
 
 # Customer creation with structured data
 customer_request = MetrifoxSDK::Types::CustomerCreateRequest.new(
@@ -158,7 +155,7 @@ customer_request = MetrifoxSDK::Types::CustomerCreateRequest.new(
   legal_name: "Acme Corp"
 )
 
-response = MetrifoxSDK.customers.create(customer_request)
+response = METRIFOX_SDK.customers.create(customer_request)
 ```
 
 ## Error Handling
