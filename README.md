@@ -27,14 +27,10 @@ $ gem install metrifox_sdk
 ### Configuration
 
 ```ruby
-require 'metrifox_sdk'
+require 'metrifox-sdk'
 
 # Initialize with configuration
-MetrifoxSDK.init({
-  api_key: "your-api-key",
-  base_url: "https://metrifox-api.staging.useyala.com/api/v1/",
-  web_app_base_url: "https://frontend-v3.staging.useyala.com"
-})
+MetrifoxSDK.init({ api_key: "your-api-key"})
 
 # Or set environment variable
 ENV["METRIFOX_API_KEY"] = "your-api-key"
