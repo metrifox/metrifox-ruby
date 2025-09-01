@@ -38,7 +38,6 @@ module MetrifoxSDK::Customers
       customer_key = get_value(request_payload, :customer_key)
       uri = URI.join(base_url, "customers/#{customer_key}/details")
       response = make_request(uri, "GET", api_key)
-      p "RESPONSE", response
       parse_response(response, "Failed to Fetch Customer Details")
     end
 
