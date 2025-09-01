@@ -14,7 +14,7 @@ module MetrifoxSDK
         api.customer_update_request(base_url, api_key, customer_key, request_payload)
       end
 
-      def get(request_payload)
+      def get_customer(request_payload)
         validate_api_key!
         api.customer_get_request(base_url, api_key, request_payload)
       end
@@ -24,7 +24,7 @@ module MetrifoxSDK
         api.customer_details_get_request(base_url, api_key, request_payload)
       end
 
-      def delete(request_payload)
+      def delete_customer(request_payload)
         validate_api_key!
         api.customer_delete_request(base_url, api_key, request_payload)
       end
