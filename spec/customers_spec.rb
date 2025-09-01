@@ -534,4 +534,167 @@ RSpec.describe MetrifoxSDK::Customers::Module do
       temp_file.unlink
     end
   end
+
+  describe "#list" do
+    let(:expected_response) do
+      {
+        "statusCode" => 200,
+        "message" => "Customers Fetched",
+        "meta" => {
+          "current_page" => 1,
+          "total_pages" => 1,
+          "total_count" => 2,
+          "limit_value" => 25,
+          "next_page" => nil,
+          "prev_page" => nil,
+          "first_page?" => true,
+          "last_page?" => true,
+          "out_of_range?" => false
+        },
+        "data" => [
+          {
+            "id" => "341d4d46-9abe-4710-95b5-a09919c0a359",
+            "primary_email" => "info@techstart.io",
+            "primary_phone" => "+1-555-0202",
+            "legal_name" => "TechStart Solutions LLC",
+            "display_name" => "TechStart",
+            "customer_type" => "BUSINESS",
+            "customer_key" => "TECHSTART_002"
+          },
+          {
+            "id" => "1326e1f3-64c9-4340-a61b-e0a65bad9478",
+            "primary_email" => "john.smith@email.com",
+            "primary_phone" => "+1-555-1234",
+            "display_name" => "John Smith",
+            "customer_type" => "INDIVIDUAL",
+            "customer_key" => "JOHN_SMITH_006"
+          }
+        ],
+        "errors" => {}
+      }
+    end
+
+    it "fetches customers list successfully" do
+      stub_request(:get, "#{base_url}customers")
+        .with(
+          headers: {
+            'x-api-key' => api_key,
+            'Content-Type' => 'application/json'
+          }
+        )
+        .to_return(
+          status: 200,
+          body: expected_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = customers_module.list
+      expect(result).to eq(expected_response)
+      expect(result["statusCode"]).to eq(200)
+      expect(result["message"]).to eq("Customers Fetched")
+      expect(result["data"]).to be_an(Array)
+      expect(result["data"].length).to eq(2)
+    end
+
+    it "fetches customers with pagination parameters" do
+      list_params = { page: 2, per_page: 10 }
+      
+      stub_request(:get, "#{base_url}customers")
+        .with(
+          query: { page: "2", per_page: "10" },
+          headers: {
+            'x-api-key' => api_key,
+            'Content-Type' => 'application/json'
+          }
+        )
+        .to_return(
+          status: 200,
+          body: expected_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = customers_module.list(list_params)
+      expect(result).to eq(expected_response)
+    end
+
+    it "fetches customers with filter parameters" do
+      list_params = { 
+        search_term: "TechStart",
+        customer_type: "BUSINESS",
+        date_created: "2025-09-01"
+      }
+      
+      stub_request(:get, "#{base_url}customers")
+        .with(
+          query: { 
+            search_term: "TechStart",
+            customer_type: "BUSINESS",
+            date_created: "2025-09-01"
+          },
+          headers: {
+            'x-api-key' => api_key,
+            'Content-Type' => 'application/json'
+          }
+        )
+        .to_return(
+          status: 200,
+          body: expected_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = customers_module.list(list_params)
+      expect(result).to eq(expected_response)
+    end
+
+    it "fetches customers with combined pagination and filter parameters" do
+      list_params = { 
+        page: 1,
+        per_page: 5,
+        search_term: "John",
+        customer_type: "INDIVIDUAL"
+      }
+      
+      stub_request(:get, "#{base_url}customers")
+        .with(
+          query: { 
+            page: "1",
+            per_page: "5",
+            search_term: "John",
+            customer_type: "INDIVIDUAL"
+          },
+          headers: {
+            'x-api-key' => api_key,
+            'Content-Type' => 'application/json'
+          }
+        )
+        .to_return(
+          status: 200,
+          body: expected_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = customers_module.list(list_params)
+      expect(result).to eq(expected_response)
+    end
+
+    it "handles list API errors" do
+      error_response = {
+        "statusCode" => 500,
+        "message" => "Internal Server Error",
+        "meta" => {},
+        "data" => nil,
+        "errors" => {}
+      }
+
+      stub_request(:get, "#{base_url}customers")
+        .to_return(
+          status: 500,
+          body: error_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      expect { customers_module.list }
+        .to raise_error(MetrifoxSDK::APIError, /Failed to Fetch Customers: 500/)
+    end
+  end
 end

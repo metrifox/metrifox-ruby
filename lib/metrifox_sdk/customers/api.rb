@@ -41,6 +41,19 @@ module MetrifoxSDK::Customers
       parse_response(response, "Failed to Fetch Customer Details")
     end
 
+    def customer_list_request(base_url, api_key, request_payload = {})
+      uri = URI.join(base_url, "customers")
+      
+      # Build query parameters from the request payload
+      query_params = build_query_params(request_payload)
+      if query_params && !query_params.empty?
+        uri.query = URI.encode_www_form(query_params)
+      end
+      
+      response = make_request(uri, "GET", api_key)
+      parse_response(response, "Failed to Fetch Customers")
+    end
+
     def upload_customers_csv(base_url, api_key, file_path)
       uri = URI.join(base_url, "customers/csv-upload")
 
@@ -66,6 +79,24 @@ module MetrifoxSDK::Customers
       else
         raise ArgumentError, "Invalid request format"
       end
+    end
+
+    # Helper method to build query parameters for list requests
+    def build_query_params(request_payload)
+      return {} unless request_payload
+
+      params = {}
+      
+      # Handle pagination parameters
+      params[:page] = get_value(request_payload, :page) if get_value(request_payload, :page)
+      params[:per_page] = get_value(request_payload, :per_page) if get_value(request_payload, :per_page)
+      
+      # Handle filter parameters
+      params[:search_term] = get_value(request_payload, :search_term) if get_value(request_payload, :search_term)
+      params[:customer_type] = get_value(request_payload, :customer_type) if get_value(request_payload, :customer_type)
+      params[:date_created] = get_value(request_payload, :date_created) if get_value(request_payload, :date_created)
+      
+      params.compact
     end
 
     # Helper method to get value from either hash or struct
