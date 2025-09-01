@@ -45,7 +45,7 @@ MetrifoxSDK.init
 
 ```ruby
 # Check feature access
-response = MetrifoxSDK.check_access({
+response = MetrifoxSDK.usages.check_access({
   feature_key: "premium_feature",
   customer_key: "customer_123"
 })
@@ -57,7 +57,7 @@ puts response["can_access"] # true/false
 
 ```ruby
 # Record usage event
-response = MetrifoxSDK.record_usage({
+response = MetrifoxSDK.usages.record_usage({
   customer_key: "customer_123",
   event_name: "api_call",
   amount: 1
@@ -76,7 +76,7 @@ customer_data = {
   display_name: "ACME"
 }
 
-response = MetrifoxSDK.create_customer(customer_data)
+response = MetrifoxSDK.customers.create(customer_data)
 
 # Update customer
 update_data = {
@@ -84,13 +84,13 @@ update_data = {
   website_url: "https://acme.com"
 }
 
-response = MetrifoxSDK.update_customer("customer_123", update_data)
+response = MetrifoxSDK.customers.update("customer_123", update_data)
 
 # Get customer
-response = MetrifoxSDK.get_customer({ customer_key: "customer_123" })
+response = MetrifoxSDK.customers.get_customer({ customer_key: "customer_123" })
 
 # Get customer details
-response = MetrifoxSDK.get_customer_details({ customer_key: "customer_123" })
+response = MetrifoxSDK.customers.get_details({ customer_key: "customer_123" })
 
 # Delete customer
 response = MetrifoxSDK.delete_customer({ customer_key: "customer_123" })
@@ -100,7 +100,7 @@ response = MetrifoxSDK.delete_customer({ customer_key: "customer_123" })
 
 ```ruby
 # Upload customers via CSV
-response = MetrifoxSDK.upload_customers_csv("/path/to/customers.csv")
+response = MetrifoxSDK.customers.upload_csv("/path/to/customers.csv")
 
 puts response["data"]["total_customers"]
 puts response["data"]["successful_upload_count"]
@@ -113,7 +113,7 @@ client = MetrifoxSDK::Client.new({
   api_key: "your-api-key"
 })
 
-response = client.check_access({
+response = client.usages.check_access({
   feature_key: "premium_feature",
   customer_key: "customer_123"
 })
@@ -130,7 +130,7 @@ access_request = MetrifoxSDK::Types::AccessCheckRequest.new(
   customer_key: "customer_123"
 )
 
-response = MetrifoxSDK.check_access(access_request)
+response = MetrifoxSDK.usages.check_access(access_request)
 
 # Customer creation with structured data
 customer_request = MetrifoxSDK::Types::CustomerCreateRequest.new(
@@ -140,14 +140,14 @@ customer_request = MetrifoxSDK::Types::CustomerCreateRequest.new(
   legal_name: "Acme Corp"
 )
 
-response = MetrifoxSDK.create_customer(customer_request)
+response = MetrifoxSDK.customers.create(customer_request)
 ```
 
 ## Error Handling
 
 ```ruby
 begin
-  response = MetrifoxSDK.check_access({
+  response = MetrifoxSDK.usages.check_access({
     feature_key: "premium_feature",
     customer_key: "customer_123"
   })
