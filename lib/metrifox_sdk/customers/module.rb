@@ -29,6 +29,11 @@ module MetrifoxSDK
         api.customer_delete_request(base_url, api_key, request_payload)
       end
 
+      def list(request_payload = {})
+        validate_api_key!
+        api.customer_list_request(base_url, api_key, request_payload)
+      end
+
       def upload_csv(file_path)
         validate_api_key!
         api.upload_customers_csv(base_url, api_key, file_path)

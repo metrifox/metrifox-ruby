@@ -6,7 +6,7 @@ lib_path = File.expand_path('../lib', __dir__)
 $LOAD_PATH.unshift(lib_path) unless $LOAD_PATH.include?(lib_path)
 
 # Load directly without letting bundler interfere
-load File.join(lib_path, 'metrifox_sdk.rb')
+load File.join(lib_path, 'metrifox-sdk.rb')
 
 require "webmock/rspec"
 
