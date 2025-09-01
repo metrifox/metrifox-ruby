@@ -1,4 +1,4 @@
-module MetrifoxSdk
+module MetrifoxSDK
   module UtilMethods
     def self.load_dotenv
       return if @dotenv_loaded

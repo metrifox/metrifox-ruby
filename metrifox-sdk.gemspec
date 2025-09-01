@@ -2,7 +2,7 @@ require_relative 'lib/metrifox_sdk/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "metrifox-sdk"
-  spec.version       = MetrifoxSdk::VERSION
+  spec.version       = MetrifoxSDK::VERSION
   spec.authors       = ["TheCodeNinja"]
   spec.email         = ["ibrahim@metrifox.com"]
 

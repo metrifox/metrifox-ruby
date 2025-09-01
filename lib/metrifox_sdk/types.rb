@@ -1,4 +1,4 @@
-module MetrifoxSdk
+module MetrifoxSDK
   module Types
     # Enums
     module TaxStatus

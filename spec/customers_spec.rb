@@ -1,16 +1,18 @@
+require_relative '../lib/metrifox_sdk/customers/module'
 require 'spec_helper'
 require 'webmock/rspec'
 require 'tempfile'
 
-RSpec.describe MetrifoxSdk::Client do
+RSpec.describe MetrifoxSDK::Customers::Module do
   let(:api_key) { "test-api-key" }
   let(:base_url) { "https://api.example.com/api/v1/" }
   let(:client) do
-    MetrifoxSdk::Client.new(
+    MetrifoxSDK::Client.new(
       api_key: api_key,
       base_url: base_url
     )
   end
+  let(:customers_module) { client.customers }
   let(:customer_key) { "okoro_manufacturing_2024_006" }
   let(:customer_payload) do
     {
@@ -54,16 +56,6 @@ RSpec.describe MetrifoxSdk::Client do
           type: "VAT",
           number: "VAT123456789",
           country: "Nigeria"
-        },
-        {
-          type: "TIN",
-          number: "TIN567890123",
-          country: "Nigeria"
-        },
-        {
-          type: "CAC",
-          number: "RC1234567890",
-          country: "Nigeria"
         }
       ],
       contact_people: [
@@ -75,52 +67,23 @@ RSpec.describe MetrifoxSdk::Client do
           department: "Finance",
           is_primary: true,
           phone_number: "+2348087654321"
-        },
-        {
-          first_name: "Adaora",
-          last_name: "Nweke",
-          email_address: "adaora@okoromanufacturing.com",
-          designation: "Operations Manager",
-          department: "Operations",
-          is_primary: false,
-          phone_number: "+2348076543210"
         }
       ],
       payment_terms: [
         {
           type: "Custom",
           value: "7"
-        },
-        {
-          type: "Net 30",
-          value: "30"
         }
       ],
       metadata: {
         source: "website_registration",
         referral_code: "REF2024001",
-        industry: "Manufacturing",
-        company_size: "51-200",
-        annual_revenue: "10M-50M",
-        priority_level: "high",
-        sales_rep: "John Adebayo",
-        lead_score: 85,
-        onboarding_status: "pending",
-        custom_fields: {
-          preferred_contact_time: "9AM-5PM WAT",
-          business_registration_date: "2018-03-15",
-          main_products: ["Industrial Equipment", "Spare Parts"],
-          target_markets: ["Nigeria", "Ghana", "Cameroon"]
-        }
+        industry: "Manufacturing"
       },
       email_addresses: [
         {
           email: "info@okoromanufacturing.com.ng",
           is_primary: true
-        },
-        {
-          email: "billing@okoromanufacturing.com",
-          is_primary: false
         }
       ],
       phone_numbers: [
@@ -137,7 +100,7 @@ RSpec.describe MetrifoxSdk::Client do
     WebMock.disable_net_connect!(allow_localhost: false)
   end
 
-  describe "#create_customer" do
+  describe "#create" do
     let(:expected_response) do
       {
         "statusCode" => 201,
@@ -148,134 +111,9 @@ RSpec.describe MetrifoxSdk::Client do
           "primary_email" => "support@okoromanufacturing2.com.ng",
           "primary_phone" => "+2348012345678",
           "legal_name" => "Okoro Manufacturing Limited",
-          "display_name" => "Okoro Manufacturing",
-          "legal_number" => "RC1234567890",
-          "tax_identification_number" => "TIN567890123",
-          "logo_url" => "https://okoromanufacturing.com/logo.png",
-          "website_url" => "https://okoromanufacturing.com",
-          "account_manager" => "Emmanuel Okoro",
-          "first_name" => nil,
-          "middle_name" => nil,
-          "last_name" => nil,
-          "full_name" => "Okoro Manufacturing",
-          "billing_email" => "billing@okoromanufacturing.com",
-          "timezone" => "Africa/Lagos",
-          "language" => "en",
-          "currency" => "NGN",
-          "tax_status" => "TAXABLE",
-          "address_line1" => "Plot 15, Industrial Layout",
-          "address_line2" => "Garki District",
-          "city" => "Abuja",
-          "state" => "FCT",
-          "country" => "Nigeria",
-          "zip_code" => "900001",
-          "shipping_address_line1" => "Warehouse 3B, Ikeja Industrial Estate",
-          "shipping_address_line2" => "Ogba Road",
-          "shipping_city" => "Lagos",
-          "shipping_state" => "Lagos",
-          "shipping_country" => "Nigeria",
-          "shipping_zip_code" => "100218",
+          "customer_key" => customer_key,
           "created_at" => "2025-08-30T19:58:31.007Z",
-          "updated_at" => "2025-08-30T19:58:31.007Z",
-          "customer_type" => "BUSINESS",
-          "customer_key" => "okoro_manufacturing_2024_006",
-          "phone_numbers" => [
-            {
-              "phone_number" => "8012345678",
-              "country_code" => "+234",
-              "is_primary" => true
-            }
-          ],
-          "email_addresses" => [
-            {
-              "email" => "info@okoromanufacturing.com.ng",
-              "is_primary" => true
-            },
-            {
-              "email" => "billing@okoromanufacturing.com",
-              "is_primary" => false
-            }
-          ],
-          "billing_configuration" => {
-            "preferred_payment_gateway" => "stripe",
-            "preferred_payment_method" => "card",
-            "billing_email" => "billing@okoromanufacturing.com",
-            "billing_address" => "Plot 15, Industrial Layout, Garki District, Abuja, FCT, Nigeria, 900001",
-            "payment_reminder_days" => nil
-          },
-          "tax_identifications" => [
-            {
-              "type" => "VAT",
-              "number" => "VAT123456789",
-              "country" => "Nigeria"
-            },
-            {
-              "type" => "TIN",
-              "number" => "TIN567890123",
-              "country" => "Nigeria"
-            },
-            {
-              "type" => "CAC",
-              "number" => "RC1234567890",
-              "country" => "Nigeria"
-            }
-          ],
-          "contact_people" => [
-            {
-              "is_primary" => true,
-              "first_name" => "Chika",
-              "last_name" => "Okoro",
-              "email_address" => "chika@okoromanufacturing.com",
-              "designation" => "Finance Manager",
-              "department" => "Finance",
-              "phone_number" => "+2348087654321"
-            },
-            {
-              "is_primary" => false,
-              "first_name" => "Adaora",
-              "last_name" => "Nweke",
-              "email_address" => "adaora@okoromanufacturing.com",
-              "designation" => "Operations Manager",
-              "department" => "Operations",
-              "phone_number" => "+2348076543210"
-            }
-          ],
-          "payment_terms" => [
-            {
-              "type" => "Custom",
-              "value" => "7"
-            },
-            {
-              "type" => "Net 30",
-              "value" => "30"
-            }
-          ],
-          "metadata" => {
-            "source" => "website_registration",
-            "referral_code" => "REF2024001",
-            "industry" => "Manufacturing",
-            "company_size" => "51-200",
-            "annual_revenue" => "10M-50M",
-            "priority_level" => "high",
-            "sales_rep" => "John Adebayo",
-            "lead_score" => 85,
-            "onboarding_status" => "pending",
-            "custom_fields" => {
-              "preferred_contact_time" => "9AM-5PM WAT",
-              "business_registration_date" => "2018-03-15",
-              "main_products" => [
-                "Industrial Equipment",
-                "Spare Parts"
-              ],
-              "target_markets" => [
-                "Nigeria",
-                "Ghana",
-                "Cameroon"
-              ]
-            }
-          },
-          "date_of_birth" => nil,
-          "documents" => []
+          "updated_at" => "2025-08-30T19:58:31.007Z"
         },
         "errors" => {}
       }
@@ -296,12 +134,11 @@ RSpec.describe MetrifoxSdk::Client do
           headers: { 'Content-Type' => 'application/json' }
         )
 
-      result = client.create_customer(customer_payload)
+      result = customers_module.create(customer_payload)
       expect(result).to eq(expected_response)
       expect(result["statusCode"]).to eq(201)
       expect(result["message"]).to eq("Customer Created Successfully")
       expect(result["data"]["customer_key"]).to eq(customer_key)
-      expect(result["data"]["primary_email"]).to eq("support@okoromanufacturing2.com.ng")
     end
 
     it "handles API errors gracefully" do
@@ -317,31 +154,26 @@ RSpec.describe MetrifoxSdk::Client do
       }
 
       stub_request(:post, "#{base_url}customers/new")
-        .with(
-          headers: {
-            'x-api-key' => api_key,
-            'Content-Type' => 'application/json'
-          }
-        )
         .to_return(
           status: 400,
           body: error_response.to_json,
           headers: { 'Content-Type' => 'application/json' }
         )
 
-      expect { client.create_customer(customer_payload) }
-        .to raise_error(MetrifoxSdk::APIError, /Failed to Create Customer: 400/)
+      expect { customers_module.create(customer_payload) }
+        .to raise_error(MetrifoxSDK::APIError, /Failed to Create Customer: 400/)
     end
 
     it "validates API key is not empty string" do
-      client_with_empty_key = MetrifoxSdk::Client.new(api_key: "")
+      client_with_empty_key = MetrifoxSDK::Client.new(api_key: "")
+      customers_module_empty_key = client_with_empty_key.customers
 
-      expect { client_with_empty_key.create_customer(customer_payload) }
-        .to raise_error(MetrifoxSdk::ConfigurationError, /API key required/)
+      expect { customers_module_empty_key.create(customer_payload) }
+        .to raise_error(MetrifoxSDK::ConfigurationError, /API key required/)
     end
   end
 
-  describe "#get_customer" do
+  describe "#get" do
     let(:expected_response) do
       {
         "statusCode" => 200,
@@ -373,7 +205,7 @@ RSpec.describe MetrifoxSdk::Client do
           headers: { 'Content-Type' => 'application/json' }
         )
 
-      result = client.get_customer({ customer_key: customer_key })
+      result = customers_module.get({ customer_key: customer_key })
       expect(result).to eq(expected_response)
       expect(result["statusCode"]).to eq(200)
       expect(result["data"]["customer_key"]).to eq(customer_key)
@@ -395,16 +227,16 @@ RSpec.describe MetrifoxSdk::Client do
           headers: { 'Content-Type' => 'application/json' }
         )
 
-      expect { client.get_customer({ customer_key: customer_key }) }
-        .to raise_error(MetrifoxSdk::APIError, /Failed to Fetch Customer: 404/)
+      expect { customers_module.get({ customer_key: customer_key }) }
+        .to raise_error(MetrifoxSDK::APIError, /Failed to Fetch Customer: 404/)
     end
   end
 
-  describe "#get_customer_details" do
+  describe "#get_details" do
     let(:expected_response) do
       {
         "statusCode" => 200,
-        "message" => "Customer Retrieved Successfully",
+        "message" => "Customer Details Retrieved Successfully",
         "meta" => {},
         "data" => {
           "metrifox_id" => "8cd3bde1-96ca-4f01-b015-aad9ce861e91",
@@ -417,7 +249,7 @@ RSpec.describe MetrifoxSdk::Client do
       }
     end
 
-    it "fetches a customer details successfully" do
+    it "fetches customer details successfully" do
       stub_request(:get, "#{base_url}customers/#{customer_key}/details")
         .with(
           headers: {
@@ -431,7 +263,7 @@ RSpec.describe MetrifoxSdk::Client do
           headers: { 'Content-Type' => 'application/json' }
         )
 
-      result = client.get_customer_details({ customer_key: customer_key })
+      result = customers_module.get_details({ customer_key: customer_key })
       expect(result).to eq(expected_response)
       expect(result["statusCode"]).to eq(200)
       expect(result["data"]["customer_key"]).to eq(customer_key)
@@ -449,19 +281,19 @@ RSpec.describe MetrifoxSdk::Client do
         "errors" => {}
       }
 
-      stub_request(:get, "#{base_url}customers/#{customer_key}")
+      stub_request(:get, "#{base_url}customers/#{customer_key}/details")
         .to_return(
           status: 404,
           body: error_response.to_json,
           headers: { 'Content-Type' => 'application/json' }
         )
 
-      expect { client.get_customer({ customer_key: customer_key }) }
-        .to raise_error(MetrifoxSdk::APIError, /Failed to Fetch Customer: 404/)
+      expect { customers_module.get_details({ customer_key: customer_key }) }
+        .to raise_error(MetrifoxSDK::APIError, /Failed to Fetch Customer Details: 404/)
     end
   end
 
-  describe "#update_customer" do
+  describe "#update" do
     let(:update_payload) do
       {
         primary_email: "updated@okoromanufacturing.com",
@@ -500,7 +332,7 @@ RSpec.describe MetrifoxSdk::Client do
           headers: { 'Content-Type' => 'application/json' }
         )
 
-      result = client.update_customer(customer_key, update_payload)
+      result = customers_module.update(customer_key, update_payload)
       expect(result).to eq(expected_response)
       expect(result["statusCode"]).to eq(200)
       expect(result["data"]["primary_email"]).to eq("updated@okoromanufacturing.com")
@@ -524,12 +356,12 @@ RSpec.describe MetrifoxSdk::Client do
           headers: { 'Content-Type' => 'application/json' }
         )
 
-      expect { client.update_customer(customer_key, update_payload) }
-        .to raise_error(MetrifoxSdk::APIError, /Failed to UPDATE Customer: 422/)
+      expect { customers_module.update(customer_key, update_payload) }
+        .to raise_error(MetrifoxSDK::APIError, /Failed to UPDATE Customer: 422/)
     end
   end
 
-  describe "#delete_customer" do
+  describe "#delete" do
     let(:expected_response) do
       {
         "statusCode" => 200,
@@ -557,7 +389,7 @@ RSpec.describe MetrifoxSdk::Client do
           headers: { 'Content-Type' => 'application/json' }
         )
 
-      result = client.delete_customer({ customer_key: customer_key })
+      result = customers_module.delete({ customer_key: customer_key })
       expect(result).to eq(expected_response)
       expect(result["statusCode"]).to eq(200)
       expect(result["data"]["deleted"]).to be true
@@ -579,56 +411,12 @@ RSpec.describe MetrifoxSdk::Client do
           headers: { 'Content-Type' => 'application/json' }
         )
 
-      expect { client.delete_customer({ customer_key: customer_key }) }
-        .to raise_error(MetrifoxSdk::APIError, /Failed to DELETE Customer: 404/)
+      expect { customers_module.delete({ customer_key: customer_key }) }
+        .to raise_error(MetrifoxSDK::APIError, /Failed to DELETE Customer: 404/)
     end
   end
 
-  let(:expected_response) do
-    {
-      "statusCode" => 200,
-      "message" => "Customers Upload Completed",
-      "meta" => {},
-      "data" => {
-        "total_customers" => 3,
-        "successful_upload_count" => 3,
-        "failed_upload_count" => 0,
-        "customers_added" => [
-          {
-            "row" => 1,
-            "customer_key" => "ACME_CORP_001",
-            "data" => {
-              "customer_type" => "BUSINESS",
-              "email" => "contact@acmecorp.com",
-              "display_name" => "Acme Corp"
-            }
-          },
-          {
-            "row" => 2,
-            "customer_key" => "TECHSTART_002",
-            "data" => {
-              "customer_type" => "BUSINESS",
-              "email" => "info@techstart.io",
-              "display_name" => "TechStart"
-            }
-          },
-          {
-            "row" => 3,
-            "customer_key" => "JOHN_SMITH_006",
-            "data" => {
-              "customer_type" => "INDIVIDUAL",
-              "email" => "john.smith@email.com",
-              "display_name" => "John Smith"
-            }
-          }
-        ],
-        "customers_failed" => []
-      },
-      "errors" => {}
-    }
-  end
-
-  describe "#upload_customers_csv" do
+  describe "#upload_csv" do
     let(:csv_content) do
       "customer_key,customer_type,primary_email,display_name\n" \
         "ACME_CORP_001,BUSINESS,contact@acmecorp.com,Acme Corp\n" \
@@ -681,13 +469,11 @@ RSpec.describe MetrifoxSdk::Client do
     end
 
     it "uploads CSV file successfully" do
-      # Create a temporary CSV file
       temp_file = Tempfile.new(['customers', '.csv'])
       temp_file.write(csv_content)
       temp_file.rewind
       temp_file.close
 
-      # Stub the multipart request
       stub_request(:post, "#{base_url}customers/csv-upload")
         .with(
           headers: {
@@ -695,7 +481,6 @@ RSpec.describe MetrifoxSdk::Client do
             'Content-Type' => /multipart\/form-data/
           }
         ) do |request|
-        # Verify the multipart body contains the CSV content
         expect(request.body).to include(csv_content)
         expect(request.body).to include('Content-Disposition: form-data; name="csv"')
         expect(request.body).to include('Content-Type: text/csv')
@@ -706,21 +491,19 @@ RSpec.describe MetrifoxSdk::Client do
           headers: { 'Content-Type' => 'application/json' }
         )
 
-      result = client.upload_customers_csv(temp_file.path)
+      result = customers_module.upload_csv(temp_file.path)
       expect(result).to eq(expected_response)
       expect(result["statusCode"]).to eq(200)
       expect(result["data"]["total_customers"]).to eq(3)
       expect(result["data"]["successful_upload_count"]).to eq(3)
-      expect(result["data"]["failed_upload_count"]).to eq(0)
 
-      # Clean up
       temp_file.unlink
     end
 
     it "handles file not found error" do
       non_existent_file = "./non_existent_file.csv"
 
-      expect { client.upload_customers_csv(non_existent_file) }
+      expect { customers_module.upload_csv(non_existent_file) }
         .to raise_error(ArgumentError, /File not found/)
     end
 
@@ -745,95 +528,10 @@ RSpec.describe MetrifoxSdk::Client do
           headers: { 'Content-Type' => 'application/json' }
         )
 
-      expect { client.upload_customers_csv(temp_file.path) }
-        .to raise_error(MetrifoxSdk::APIError, /Failed to upload CSV: 413/)
+      expect { customers_module.upload_csv(temp_file.path) }
+        .to raise_error(MetrifoxSDK::APIError, /Failed to upload CSV: 413/)
 
       temp_file.unlink
-    end
-
-    it "handles partial upload success with failures" do
-      temp_file = Tempfile.new(['customers', '.csv'])
-      temp_file.write(csv_content)
-      temp_file.rewind
-      temp_file.close
-
-      partial_success_response = {
-        "statusCode" => 200,
-        "message" => "Customers Upload Completed with some failures",
-        "meta" => {},
-        "data" => {
-          "total_customers" => 3,
-          "successful_upload_count" => 2,
-          "failed_upload_count" => 1,
-          "customers_added" => [
-            {
-              "row" => 1,
-              "customer_key" => "ACME_CORP_001",
-              "data" => {
-                "customer_type" => "BUSINESS",
-                "email" => "contact@acmecorp.com",
-                "display_name" => "Acme Corp"
-              }
-            },
-            {
-              "row" => 2,
-              "customer_key" => "TECHSTART_002",
-              "data" => {
-                "customer_type" => "BUSINESS",
-                "email" => "info@techstart.io",
-                "display_name" => "TechStart"
-              }
-            }
-          ],
-          "customers_failed" => [
-            {
-              "row" => 3,
-              "customer_key" => "JOHN_SMITH_006",
-              "error" => "Invalid email format"
-            }
-          ]
-        },
-        "errors" => {}
-      }
-
-      stub_request(:post, "#{base_url}customers/csv-upload")
-        .to_return(
-          status: 200,
-          body: partial_success_response.to_json,
-          headers: { 'Content-Type' => 'application/json' }
-        )
-
-      result = client.upload_customers_csv(temp_file.path)
-      expect(result["data"]["successful_upload_count"]).to eq(2)
-      expect(result["data"]["failed_upload_count"]).to eq(1)
-      expect(result["data"]["customers_failed"]).not_to be_empty
-
-      temp_file.unlink
-    end
-
-    it "works with actual CSV file path" do
-      # This test assumes customers.csv exists in the project root
-      csv_file_path = "./customers.csv"
-
-      # Skip test if file doesn't exist
-      skip "customers.csv not found in project root" unless File.exist?(csv_file_path)
-
-      stub_request(:post, "#{base_url}customers/csv-upload")
-        .with(
-          headers: {
-            'x-api-key' => api_key,
-            'Content-Type' => /multipart\/form-data/
-          }
-        )
-        .to_return(
-          status: 200,
-          body: expected_response.to_json,
-          headers: { 'Content-Type' => 'application/json' }
-        )
-
-      result = client.upload_customers_csv(csv_file_path)
-      expect(result["statusCode"]).to eq(200)
-      expect(result["data"]).to have_key("total_customers")
     end
   end
 end

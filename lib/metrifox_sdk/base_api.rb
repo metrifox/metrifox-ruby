@@ -3,7 +3,7 @@ require "uri"
 require "json"
 require "mime/types"
 
-module MetrifoxSdk
+module MetrifoxSDK
   class BaseApi
     private
 
