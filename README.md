@@ -30,7 +30,7 @@ $ gem install metrifox-sdk
 require 'metrifox-sdk'
 
 # Initialize with configuration
-MetrifoxSDK.init({ api_key: "your-api-key"})
+METRIFOX_SDK = MetrifoxSDK.init({ api_key: "your-api-key"})
 
 # Or set environment variable
 ENV["METRIFOX_API_KEY"] = "your-api-key"
@@ -89,20 +89,20 @@ response = METRIFOX_SDK.customers.get_customer({ customer_key: "customer_123" })
 response = METRIFOX_SDK.customers.get_details({ customer_key: "customer_123" })
 
 # List customers
-response = MetrifoxSDK.customers.list
+response = METRIFOX_SDK.customers.list
 
 # List customers with pagination
-response = MetrifoxSDK.customers.list({ page: 2, per_page: 10 })
+response = METRIFOX_SDK.customers.list({ page: 2, per_page: 10 })
 
 # List customers with filters
-response = MetrifoxSDK.customers.list({ 
+response = METRIFOX_SDK.customers.list({ 
   search_term: "TechStart",
   customer_type: "BUSINESS",
   date_created: "2025-09-01"
 })
 
 # List customers with combined pagination and filters
-response = MetrifoxSDK.customers.list({ 
+response = METRIFOX_SDK.customers.list({ 
   page: 1,
   per_page: 5,
   search_term: "John",
@@ -110,7 +110,7 @@ response = MetrifoxSDK.customers.list({
 })
 
 # Delete customer
-response = MetrifoxSDK.customers.delete_customer({ customer_key: "customer_123" })
+response = METRIFOX_SDK.customers.delete_customer({ customer_key: "customer_123" })
 
 ```
 
