@@ -21,6 +21,10 @@ module MetrifoxSDK
       @usages ||= Usages::Module.new(self)
     end
 
+    def checkout
+      @checkout ||= Checkout::Module.new(self)
+    end
+
     private
 
     def get_api_key_from_environment

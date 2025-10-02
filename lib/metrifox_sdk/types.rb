@@ -107,5 +107,6 @@ module MetrifoxSDK
     APIResponse = Struct.new(:status_code, :message, :data, :errors, :meta, keyword_init: true)
 
     EmbedConfig = Struct.new(:container, :product_key, keyword_init: true)
+    CheckoutConfig = Struct.new(:offering_key, :billing_interval, :customer_key, keyword_init: true)
   end
 end

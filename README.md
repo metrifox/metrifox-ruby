@@ -124,6 +124,37 @@ puts response["data"]["total_customers"]
 puts response["data"]["successful_upload_count"]
 ```
 
+### Checkout URL Generation
+
+```ruby
+# Basic checkout URL generation
+checkout_url = METRIFOX_SDK.checkout.url({
+  offering_key: "your_offering_key"
+})
+
+# With optional billing interval
+checkout_url = METRIFOX_SDK.checkout.url({
+  offering_key: "your_offering_key",
+  billing_interval: "monthly"
+})
+
+# With customer key for pre-filled checkout
+checkout_url = METRIFOX_SDK.checkout.url({
+  offering_key: "your_offering_key",
+  billing_interval: "monthly",
+  customer_key: "customer_123"
+})
+
+# Using structured config object
+checkout_config = MetrifoxSDK::Types::CheckoutConfig.new(
+  offering_key: "your_offering_key",
+  billing_interval: "monthly",
+  customer_key: "customer_123"
+)
+
+checkout_url = METRIFOX_SDK.checkout.url(checkout_config)
+```
+
 ### Using Client Instance
 
 ```ruby
