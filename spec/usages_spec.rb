@@ -152,7 +152,8 @@ RSpec.describe MetrifoxSDK::Usages::Module do
           body: {
             customer_key: customer_key,
             event_name: "api_call",
-            amount: 3
+            amount: 3,
+            metadata: {}
           }.to_json
         )
         .to_return(
@@ -177,7 +178,8 @@ RSpec.describe MetrifoxSDK::Usages::Module do
       expected_body = {
         customer_key: customer_key,
         event_name: "api_call",
-        amount: 1
+        amount: 1,
+        metadata: {}
       }
 
       stub_request(:post, "#{base_url}usage/events")
@@ -241,6 +243,90 @@ RSpec.describe MetrifoxSDK::Usages::Module do
 
       expect { usages_module.record_usage(usage_request) }
         .to raise_error(MetrifoxSDK::APIError, /Failed to record usage: 429/)
+    end
+
+    it "records usage with additional fields" do
+      advanced_usage_request = {
+        customer_key: customer_key,
+        event_name: "api_call",
+        amount: 2,
+        credit_used: 5,
+        event_id: "event_uuid_123",
+        timestamp: 1640995200,
+        metadata: {
+          source: "web_app",
+          feature: "premium_search"
+        }
+      }
+
+      expected_body = {
+        customer_key: customer_key,
+        event_name: "api_call",
+        amount: 2,
+        credit_used: 5,
+        event_id: "event_uuid_123",
+        timestamp: 1640995200,
+        metadata: {
+          source: "web_app",
+          feature: "premium_search"
+        }
+      }
+
+      stub_request(:post, "#{base_url}usage/events")
+        .with(
+          headers: {
+            'x-api-key' => api_key,
+            'Content-Type' => 'application/json'
+          },
+          body: expected_body.to_json
+        )
+        .to_return(
+          status: 201,
+          body: expected_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = usages_module.record_usage(advanced_usage_request)
+      expect(result["statusCode"]).to eq(201)
+    end
+
+    it "records usage with UsageEventRequest struct" do
+      struct_request = MetrifoxSDK::Types::UsageEventRequest.new(
+        customer_key: customer_key,
+        event_name: "struct_event",
+        amount: 1,
+        credit_used: 3,
+        event_id: "struct_event_123",
+        timestamp: 1640995200,
+        metadata: { source: "test_struct" }
+      )
+
+      expected_body = {
+        customer_key: customer_key,
+        event_name: "struct_event",
+        amount: 1,
+        credit_used: 3,
+        event_id: "struct_event_123",
+        timestamp: 1640995200,
+        metadata: { source: "test_struct" }
+      }
+
+      stub_request(:post, "#{base_url}usage/events")
+        .with(
+          headers: {
+            'x-api-key' => api_key,
+            'Content-Type' => 'application/json'
+          },
+          body: expected_body.to_json
+        )
+        .to_return(
+          status: 201,
+          body: expected_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = usages_module.record_usage(struct_request)
+      expect(result["statusCode"]).to eq(201)
     end
   end
 
