@@ -152,7 +152,8 @@ RSpec.describe MetrifoxSDK::Usages::Module do
           body: {
             customer_key: customer_key,
             event_name: "api_call",
-            amount: 3
+            amount: 3,
+            metadata: {}
           }.to_json
         )
         .to_return(
@@ -177,7 +178,8 @@ RSpec.describe MetrifoxSDK::Usages::Module do
       expected_body = {
         customer_key: customer_key,
         event_name: "api_call",
-        amount: 1
+        amount: 1,
+        metadata: {}
       }
 
       stub_request(:post, "#{base_url}usage/events")
