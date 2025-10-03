@@ -44,8 +44,11 @@ module MetrifoxSDK
       :carryover_quantity, :balance, keyword_init: true
     )
 
-    UsageEventRequest = Struct.new(:customer_key, :event_name, :amount, keyword_init: true) do
-      def initialize(customer_key:, event_name:, amount: 1)
+    UsageEventRequest = Struct.new(
+      :customer_key, :event_name, :amount, :credit_used, :event_id, :timestamp, :metadata,
+      keyword_init: true
+    ) do
+      def initialize(customer_key:, event_name:, amount: 1, credit_used: nil, event_id: nil, timestamp: nil, metadata: {})
         super
       end
     end

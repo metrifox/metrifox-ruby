@@ -52,12 +52,39 @@ puts response["can_access"] # true/false
 ### Usage Tracking
 
 ```ruby
-# Record usage event
+# Basic usage recording
 response = METRIFOX_SDK.usages.record_usage({
   customer_key: "customer_123",
   event_name: "api_call",
   amount: 1
 })
+
+# Advanced usage recording with additional fields
+response = METRIFOX_SDK.usages.record_usage({
+  customer_key: "customer_123",
+  event_name: "api_call",
+  amount: 1,
+  credit_used: 5,
+  event_id: "event_uuid_123",
+  timestamp: 1640995200,
+  metadata: {
+    source: "web_app",
+    feature: "premium_search"
+  }
+})
+
+# Using structured request object
+usage_request = MetrifoxSDK::Types::UsageEventRequest.new(
+  customer_key: "customer_123",
+  event_name: "api_call",
+  amount: 1,
+  credit_used: 5,
+  event_id: "event_uuid_123",
+  timestamp: Time.now.to_i,
+  metadata: { source: "mobile_app" }
+)
+
+response = METRIFOX_SDK.usages.record_usage(usage_request)
 ```
 
 ### Customer Management
