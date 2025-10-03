@@ -44,7 +44,7 @@ module MetrifoxSDK::Usages
       body[:credit_used] = credit_used if credit_used
       body[:event_id] = event_id if event_id && !event_id.empty?
       body[:timestamp] = timestamp if timestamp
-      body[:metadata] = metadata if metadata && !metadata.empty?
+      body[:metadata] = metadata if metadata.present?
 
       response = make_request(uri, "POST", api_key, body)
       parse_response(response, "Failed to record usage")
