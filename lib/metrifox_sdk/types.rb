@@ -56,7 +56,7 @@ module MetrifoxSDK
     UsageEventResponse = Struct.new(:message, :event_name, :customer_key, keyword_init: true)
 
     CustomerCreateRequest = Struct.new(
-      # Core fields
+      # Core fields (customer_key is REQUIRED)
       :customer_key, :customer_type, :primary_email, :primary_phone,
       # Business fields
       :legal_name, :display_name, :legal_number, :tax_identification_number,
@@ -76,8 +76,8 @@ module MetrifoxSDK
     )
 
     CustomerUpdateRequest = Struct.new(
-      # Core fields
-      :customer_key, :customer_type, :primary_email, :primary_phone, :billing_email,
+      # Core fields (customer_key is NOT included - it's immutable and passed as a parameter)
+      :customer_type, :primary_email, :primary_phone, :billing_email,
       # Business fields
       :legal_name, :display_name, :legal_number, :tax_identification_number,
       :logo_url, :website_url, :account_manager,
