@@ -90,9 +90,9 @@ response = METRIFOX_SDK.usages.record_usage(usage_request)
 ### Customer Management
 
 ```ruby
-# Create customer
+# Create customer (customer_key is REQUIRED)
 customer_data = {
-  customer_key: "customer_123",
+  customer_key: "customer_123",  # Required - unique identifier for the customer
   customer_type: "BUSINESS",
   primary_email: "customer@example.com",
   legal_name: "Acme Corp",
@@ -101,10 +101,11 @@ customer_data = {
 
 response = METRIFOX_SDK.customers.create(customer_data)
 
-# Update customer
+# Update customer (customer_key cannot be changed and is passed as a parameter)
 update_data = {
   display_name: "ACME Corporation",
   website_url: "https://acme.com"
+  # Note: customer_key is NOT included here - it's immutable
 }
 
 response = METRIFOX_SDK.customers.update("customer_123", update_data)
@@ -205,15 +206,24 @@ access_request = MetrifoxSDK::Types::AccessCheckRequest.new(
 
 response = METRIFOX_SDK.usages.check_access(access_request)
 
-# Customer creation with structured data
+# Customer creation with structured data (customer_key is REQUIRED)
 customer_request = MetrifoxSDK::Types::CustomerCreateRequest.new(
-  customer_key: "customer_123",
+  customer_key: "customer_123",  # Required
   customer_type: MetrifoxSDK::Types::CustomerType::BUSINESS,
   primary_email: "customer@example.com",
   legal_name: "Acme Corp"
 )
 
 response = METRIFOX_SDK.customers.create(customer_request)
+
+# Customer update with structured data (customer_key is immutable)
+customer_update = MetrifoxSDK::Types::CustomerUpdateRequest.new(
+  display_name: "Acme Corporation",
+  website_url: "https://acme.com"
+  # Note: customer_key is NOT a field in CustomerUpdateRequest
+)
+
+response = METRIFOX_SDK.customers.update("customer_123", customer_update)
 ```
 
 ## Error Handling
