@@ -21,20 +21,20 @@ RSpec.describe MetrifoxSDK::Checkout::Module do
   end
 
   describe "#url" do
-    let(:checkout_response) do
-      {
-        "statusCode" => 200,
-        "message" => "Checkout settings retrieved successfully",
-        "meta" => {},
-        "data" => {
-          "checkout_username" => checkout_key
-        },
-        "errors" => {}
-      }
-    end
+    let(:checkout_url) { "https://checkout.example.com/checkout/abc123" }
 
-    before do
-      stub_request(:get, "#{base_url}auth/checkout-username")
+    it "generates basic checkout URL with only offering_key" do
+      config = { offering_key: "premium_plan" }
+
+      checkout_response = {
+        "statusCode" => 200,
+        "message" => "Checkout URL generated successfully",
+        "data" => {
+          "checkout_url" => checkout_url
+        }
+      }
+
+      stub_request(:get, "#{base_url}products/offerings/generate-checkout-url?offering_key=premium_plan")
         .with(
           headers: {
             'x-api-key' => api_key,
@@ -46,14 +46,10 @@ RSpec.describe MetrifoxSDK::Checkout::Module do
           body: checkout_response.to_json,
           headers: { 'Content-Type' => 'application/json' }
         )
-    end
 
-    it "generates basic checkout URL with only offering_key" do
-      config = { offering_key: "premium_plan" }
-      
       result = checkout_module.url(config)
-      
-      expect(result).to eq("#{web_app_base_url}/#{checkout_key}/checkout/premium_plan")
+
+      expect(result).to eq(checkout_url)
     end
 
     it "generates checkout URL with all parameters" do
@@ -62,10 +58,31 @@ RSpec.describe MetrifoxSDK::Checkout::Module do
         billing_interval: "monthly",
         customer_key: "customer_123"
       }
-      
+
+      checkout_response = {
+        "statusCode" => 200,
+        "message" => "Checkout URL generated successfully",
+        "data" => {
+          "checkout_url" => checkout_url
+        }
+      }
+
+      stub_request(:get, "#{base_url}products/offerings/generate-checkout-url?offering_key=premium_plan&billing_interval=monthly&customer_key=customer_123")
+        .with(
+          headers: {
+            'x-api-key' => api_key,
+            'Content-Type' => 'application/json'
+          }
+        )
+        .to_return(
+          status: 200,
+          body: checkout_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
       result = checkout_module.url(config)
-      
-      expect(result).to eq("#{web_app_base_url}/#{checkout_key}/checkout/premium_plan?billing_period=monthly&customer=customer_123")
+
+      expect(result).to eq(checkout_url)
     end
 
     it "generates checkout URL from CheckoutConfig struct" do
@@ -74,10 +91,31 @@ RSpec.describe MetrifoxSDK::Checkout::Module do
         billing_interval: "monthly",
         customer_key: "customer_123"
       )
-      
+
+      checkout_response = {
+        "statusCode" => 200,
+        "message" => "Checkout URL generated successfully",
+        "data" => {
+          "checkout_url" => checkout_url
+        }
+      }
+
+      stub_request(:get, "#{base_url}products/offerings/generate-checkout-url?offering_key=premium_plan&billing_interval=monthly&customer_key=customer_123")
+        .with(
+          headers: {
+            'x-api-key' => api_key,
+            'Content-Type' => 'application/json'
+          }
+        )
+        .to_return(
+          status: 200,
+          body: checkout_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
       result = checkout_module.url(config)
-      
-      expect(result).to eq("#{web_app_base_url}/#{checkout_key}/checkout/premium_plan?billing_period=monthly&customer=customer_123")
+
+      expect(result).to eq(checkout_url)
     end
 
     it "raises error when offering_key is missing" do
@@ -116,13 +154,13 @@ RSpec.describe "MetrifoxSDK Checkout Integration" do
 
     checkout_response = {
       "statusCode" => 200,
-      "message" => "Checkout settings retrieved successfully",
+      "message" => "Checkout URL generated successfully",
       "data" => {
-        "checkout_username" => "checkout_integration_test"
+        "checkout_url" => "https://checkout.example.com/checkout/integration123"
       }
     }
 
-    stub_request(:get, "#{base_url}auth/checkout-username")
+    stub_request(:get, "#{base_url}products/offerings/generate-checkout-url?offering_key=enterprise_plan&billing_interval=yearly&customer_key=customer_enterprise_123")
       .to_return(
         status: 200,
         body: checkout_response.to_json,
@@ -135,7 +173,6 @@ RSpec.describe "MetrifoxSDK Checkout Integration" do
       customer_key: "customer_enterprise_123"
     })
 
-    expected_url = "#{web_app_base_url}/checkout_integration_test/checkout/enterprise_plan?billing_period=yearly&customer=customer_enterprise_123"
-    expect(url).to eq(expected_url)
+    expect(url).to eq("https://checkout.example.com/checkout/integration123")
   end
 end
