@@ -6,7 +6,7 @@ module MetrifoxSDK
     class Module < BaseModule
       def url(config)
         validate_api_key!
-        
+
         # Handle both hash and struct access patterns
         offering_key = get_value(config, :offering_key)
         billing_interval = get_value(config, :billing_interval)
@@ -14,20 +14,16 @@ module MetrifoxSDK
 
         raise ArgumentError, "offering_key is required" if offering_key.nil? || offering_key.empty?
 
-        checkout_key = get_checkout_key
-        raise StandardError, "Checkout Key could not be retrieved. Ensure the API key is valid" if checkout_key.nil? || checkout_key.empty?
+        # Build query parameters
+        query_params = { offering_key: offering_key }
+        query_params[:billing_interval] = billing_interval if billing_interval && !billing_interval.empty?
+        query_params[:customer_key] = customer_key if customer_key && !customer_key.empty?
 
-        url_string = "#{web_app_base_url}/#{checkout_key}/checkout/#{offering_key}"
-        uri = URI(url_string)
-        
-        # Add query parameters if provided
-        query_params = {}
-        query_params["billing_period"] = billing_interval if billing_interval && !billing_interval.empty?
-        query_params["customer"] = customer_key if customer_key && !customer_key.empty?
-        
-        uri.query = URI.encode_www_form(query_params) unless query_params.empty?
-        
-        uri.to_s
+        # Call API to generate checkout URL
+        checkout_url = api.generate_checkout_url(base_url, api_key, query_params)
+        raise StandardError, "Checkout URL could not be generated" if checkout_url.nil? || checkout_url.empty?
+
+        checkout_url
       end
 
       private
