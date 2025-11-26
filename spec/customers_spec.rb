@@ -304,12 +304,17 @@ RSpec.describe MetrifoxSDK::Customers::Module do
         )
         .to_return(
           status: 200,
-          body: { has_active_subscription: true }.to_json,
+          body: {
+            "statusCode" => 200,
+            "message" => "Active subscription status fetched",
+            "data" => { "has_active_subscription" => true },
+            "errors" => {}
+          }.to_json,
           headers: { 'Content-Type' => 'application/json' }
         )
 
       result = customers_module.has_active_subscription?(customer_key: customer_key)
-      expect(result['has_active_subscription']).to be true
+      expect(result).to be true
     end
 
     it "handles 404 errors from the API" do

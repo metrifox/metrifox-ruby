@@ -30,7 +30,9 @@ module MetrifoxSDK
 
       def has_active_subscription?(customer_key:)
         validate_api_key!
-        api.customer_active_subscription_request(base_url, api_key, customer_key)
+        result = api.customer_active_subscription_request(base_url, api_key, customer_key)
+        data = result["data"] || {}
+        data["has_active_subscription"]
       end
 
       def delete_customer(request_payload)
