@@ -309,7 +309,7 @@ RSpec.describe MetrifoxSDK::Customers::Module do
         )
 
       result = customers_module.has_active_subscription?(customer_key: customer_key)
-      expect(result).to be true
+      expect(result['has_active_subscription']).to be true
     end
 
     it "handles 404 errors from the API" do
