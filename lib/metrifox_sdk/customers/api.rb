@@ -41,6 +41,12 @@ module MetrifoxSDK::Customers
       parse_response(response, "Failed to Fetch Customer Details")
     end
 
+    def customer_active_subscription_request(base_url, api_key, customer_key)
+      uri = URI.join(base_url, "customers/#{customer_key}/check-active-subscription")
+      response = make_request(uri, "GET", api_key)
+      parse_response(response, "Failed to Check Active Subscription")
+    end
+
     def customer_list_request(base_url, api_key, request_payload = {})
       uri = URI.join(base_url, "customers")
       

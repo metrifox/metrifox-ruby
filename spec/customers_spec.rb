@@ -293,6 +293,43 @@ RSpec.describe MetrifoxSDK::Customers::Module do
     end
   end
 
+  describe "#has_active_subscription?" do
+    it "returns true when customer has an active subscription" do
+      stub_request(:get, "#{base_url}customers/#{customer_key}/check-active-subscription")
+        .with(
+          headers: {
+            'x-api-key' => api_key,
+            'Content-Type' => 'application/json'
+          }
+        )
+        .to_return(
+          status: 200,
+          body: {
+            "statusCode" => 200,
+            "message" => "Active subscription status fetched",
+            "data" => { "has_active_subscription" => true },
+            "errors" => {}
+          }.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = customers_module.has_active_subscription?(customer_key: customer_key)
+      expect(result).to be true
+    end
+
+    it "handles 404 errors from the API" do
+      stub_request(:get, "#{base_url}customers/#{customer_key}/check-active-subscription")
+        .to_return(
+          status: 404,
+          body: { message: "Not found" }.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      expect { customers_module.has_active_subscription?(customer_key: customer_key) }
+        .to raise_error(MetrifoxSDK::APIError, /Failed to Check Active Subscription: 404/)
+    end
+  end
+
   describe "#update" do
     let(:update_payload) do
       {

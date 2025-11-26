@@ -116,6 +116,10 @@ response = METRIFOX_SDK.customers.get_customer({ customer_key: "customer_123" })
 # Get customer details
 response = METRIFOX_SDK.customers.get_details({ customer_key: "customer_123" })
 
+# Check for an active subscription
+has_active_subscription = MetrifoxSDK.customers.has_active_subscription?(customer_key: "customer_123")
+puts has_active_subscription # true or false
+
 # List customers
 response = METRIFOX_SDK.customers.list
 
