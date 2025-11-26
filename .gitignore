@@ -1,3 +1,12 @@
 .idea
 .env
 .rspec_status
+
+# Gem build artifacts
+*.gem
+pkg/
+Gemfile.lock
+
+# Bundler
+.bundle/
+vendor/bundle/
