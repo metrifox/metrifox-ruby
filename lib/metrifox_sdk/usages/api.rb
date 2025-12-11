@@ -42,7 +42,7 @@ module MetrifoxSDK::Usages
 
       # Add optional fields if present
       body[:credit_used] = credit_used if credit_used
-      body[:event_id] = event_id if event_id && !event_id.to_s.empty?
+      body[:event_id] = event_id if event_id
       body[:timestamp] = timestamp if timestamp
       body[:metadata] = metadata if metadata
 
