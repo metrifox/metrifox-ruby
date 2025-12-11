@@ -37,17 +37,16 @@ module MetrifoxSDK::Usages
 
       body = {
         customer_key:,
-        amount:
+        amount:,
+        event_id:
       }
-
-      body[:event_name] = event_name if event_name
 
       # Add optional fields if present
       body[:credit_used] = credit_used if credit_used
       body[:timestamp] = timestamp if timestamp
       body[:metadata] = metadata if metadata
       body[:feature_key] = feature_key if feature_key
-      body[:event_id] = event_id if event_id
+      body[:event_name] = event_name if event_name
 
       response = make_request(uri, "POST", api_key, body)
       parse_response(response, "Failed to record usage")
