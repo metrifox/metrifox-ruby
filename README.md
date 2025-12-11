@@ -35,6 +35,7 @@ METRIFOX_SDK = MetrifoxSDK.init({ api_key: "your-api-key"})
 # Or set environment variable
 ENV["METRIFOX_API_KEY"] = "your-api-key"
 METRIFOX_SDK = MetrifoxSDK.init
+
 ```
 
 ### Access Control
@@ -46,7 +47,28 @@ response = METRIFOX_SDK.usages.check_access({
   customer_key: "customer_123"
 })
 
-puts response["can_access"] # true/false
+puts response["data"]["can_access"] # true/false
+```
+
+> Access checks are now served by the Metrifox Meter service (`https://api-meter.metrifox.com`).
+Example response payload:
+
+```json
+{
+  "data": {
+    "customer_key": "cust-mit7k5v8obzs",
+    "feature_key": "feature_seats",
+    "requested_quantity": 1,
+    "can_access": true,
+    "unlimited": false,
+    "balance": 4,
+    "used_quantity": 0,
+    "entitlement_active": true,
+    "prepaid": false,
+    "wallet_balance": 0,
+    "message": "Feature found"
+  }
+}
 ```
 
 ### Usage Tracking
@@ -56,9 +78,17 @@ puts response["can_access"] # true/false
 response = METRIFOX_SDK.usages.record_usage({
   customer_key: "customer_123",
   event_name: "api_call",
-  amount: 1
+  amount: 1,
+  event_id: "evt_12345", # optional but recommended idempotency key
+  timestamp: (Time.now.to_f * 1000).to_i # recommended (milliseconds)
 })
+puts response["message"] # "Event received"
+puts response["data"]["quantity"] # 1
+```
 
+The usage event endpoint now returns a simple payload with the recorded `data` and a `message` confirming the event reception.
+
+```ruby
 # Advanced usage recording with additional fields
 response = METRIFOX_SDK.usages.record_usage({
   customer_key: "customer_123",
@@ -66,7 +96,7 @@ response = METRIFOX_SDK.usages.record_usage({
   amount: 1,
   credit_used: 5,
   event_id: "event_uuid_123",
-  timestamp: 1640995200,
+  timestamp: (Time.now.to_f * 1000).to_i,
   metadata: {
     source: "web_app",
     feature: "premium_search"
@@ -80,11 +110,24 @@ usage_request = MetrifoxSDK::Types::UsageEventRequest.new(
   amount: 1,
   credit_used: 5,
   event_id: "event_uuid_123",
-  timestamp: Time.now.to_i,
+  timestamp: (Time.now.to_f * 1000).to_i,
   metadata: { source: "mobile_app" }
 )
 
 response = METRIFOX_SDK.usages.record_usage(usage_request)
+```
+
+Sample response body:
+
+```json
+{
+  "data": {
+    "customer_key": "cust-mit7k5v8obzs",
+    "quantity": 1,
+    "feature_key": "feature_job_posts"
+  },
+  "message": "Event received"
+}
 ```
 
 ### Customer Management
@@ -199,35 +242,29 @@ response = METRIFOX_SDK.usages.check_access({
 
 ## Type Safety with Structs
 
-The SDK provides structured types for better type safety:
+The SDK exposes lightweight structs for the usage and checkout helpers when you want a bit more structure:
 
 ```ruby
-# Using structured request objects
-access_request = MetrifoxSDK::Types::AccessCheckRequest.new(
-  feature_key: "premium_feature",
+# Usage events
+usage_request = MetrifoxSDK::Types::UsageEventRequest.new(
+  customer_key: "customer_123",
+  event_name: "api_call",
+  amount: 1,
+  event_id: "event_uuid_123",
+  timestamp: (Time.now.to_f * 1000).to_i,
+  metadata: { source: "mobile_app" }
+)
+
+response = METRIFOX_SDK.usages.record_usage(usage_request)
+
+# Checkout configuration
+checkout_config = MetrifoxSDK::Types::CheckoutConfig.new(
+  offering_key: "premium_plan",
+  billing_interval: "monthly",
   customer_key: "customer_123"
 )
 
-response = METRIFOX_SDK.usages.check_access(access_request)
-
-# Customer creation with structured data (customer_key is REQUIRED)
-customer_request = MetrifoxSDK::Types::CustomerCreateRequest.new(
-  customer_key: "customer_123",  # Required
-  customer_type: MetrifoxSDK::Types::CustomerType::BUSINESS,
-  primary_email: "customer@example.com",
-  legal_name: "Acme Corp"
-)
-
-response = METRIFOX_SDK.customers.create(customer_request)
-
-# Customer update with structured data (customer_key is immutable)
-customer_update = MetrifoxSDK::Types::CustomerUpdateRequest.new(
-  display_name: "Acme Corporation",
-  website_url: "https://acme.com"
-  # Note: customer_key is NOT a field in CustomerUpdateRequest
-)
-
-response = METRIFOX_SDK.customers.update("customer_123", customer_update)
+checkout_url = METRIFOX_SDK.checkout.url(checkout_config)
 ```
 
 ## Error Handling

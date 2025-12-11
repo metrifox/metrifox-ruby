@@ -7,6 +7,7 @@ require 'tempfile'
 RSpec.describe MetrifoxSDK::Usages::Module do
   let(:api_key) { "test-api-key" }
   let(:base_url) { "https://api.example.com/api/v1/" }
+  let(:meter_service_base_url) { MetrifoxSDK::Client::METER_SERVICE_BASE_URL }
   let(:client) do
     MetrifoxSDK::Client.new(
       api_key: api_key,
@@ -31,28 +32,24 @@ RSpec.describe MetrifoxSDK::Usages::Module do
 
     let(:expected_response) do
       {
-        "statusCode" => 200,
-        "message" => "Access check completed",
-        "meta" => {},
         "data" => {
-          "can_access" => true,
-          "customer_id" => "8cd3bde1-96ca-4f01-b015-aad9ce861e91",
+          "customer_key" => customer_key,
           "feature_key" => feature_key,
-          "required_quantity" => 1,
-          "used_quantity" => 5,
-          "included_usage" => 100,
-          "next_reset_at" => "2025-09-01T00:00:00.000Z",
-          "quota" => 100,
+          "requested_quantity" => 1,
+          "can_access" => true,
           "unlimited" => false,
-          "carryover_quantity" => 0,
-          "balance" => 95
-        },
-        "errors" => {}
+          "balance" => 4,
+          "used_quantity" => 0,
+          "entitlement_active" => true,
+          "prepaid" => false,
+          "wallet_balance" => 0,
+          "message" => "Feature found"
+        }
       }
     end
 
     it "checks access successfully" do
-      stub_request(:get, "#{base_url}usage/access")
+      stub_request(:get, "#{meter_service_base_url}usage/access")
         .with(
           query: {
             feature_key: feature_key,
@@ -71,32 +68,29 @@ RSpec.describe MetrifoxSDK::Usages::Module do
 
       result = usages_module.check_access(access_request)
       expect(result).to eq(expected_response)
-      expect(result["statusCode"]).to eq(200)
       expect(result["data"]["can_access"]).to be true
       expect(result["data"]["feature_key"]).to eq(feature_key)
-      expect(result["data"]["balance"]).to eq(95)
+      expect(result["data"]["balance"]).to eq(4)
     end
 
     it "handles access denied" do
       denied_response = {
-        "statusCode" => 200,
-        "message" => "Access check completed",
-        "meta" => {},
         "data" => {
-          "can_access" => false,
-          "customer_id" => "8cd3bde1-96ca-4f01-b015-aad9ce861e91",
+          "customer_key" => customer_key,
           "feature_key" => feature_key,
-          "required_quantity" => 1,
-          "used_quantity" => 100,
-          "included_usage" => 100,
-          "quota" => 100,
+          "requested_quantity" => 1,
+          "can_access" => false,
           "unlimited" => false,
-          "balance" => 0
-        },
-        "errors" => {}
+          "balance" => 0,
+          "used_quantity" => 100,
+          "entitlement_active" => true,
+          "prepaid" => false,
+          "wallet_balance" => 0,
+          "message" => "Balance depleted"
+        }
       }
 
-      stub_request(:get, "#{base_url}usage/access")
+      stub_request(:get, "#{meter_service_base_url}usage/access")
         .with(query: { feature_key: feature_key, customer_key: customer_key })
         .to_return(
           status: 200,
@@ -123,27 +117,24 @@ RSpec.describe MetrifoxSDK::Usages::Module do
       {
         customer_key: customer_key,
         event_name: "api_call",
-        amount: 3
+        amount: 3,
+        event_id: "evt_12345"
       }
     end
 
     let(:expected_response) do
       {
-        "statusCode" => 201,
-        "message" => "Usage recorded successfully",
-        "meta" => {},
         "data" => {
-          "event_name" => "api_call",
           "customer_key" => customer_key,
-          "amount_recorded" => 3,
-          "new_balance" => 92
+          "quantity" => 3,
+          "feature_key" => "api_call"
         },
-        "errors" => {}
+        "message" => "Event received"
       }
     end
 
     it "records usage successfully" do
-      stub_request(:post, "#{base_url}usage/events")
+      stub_request(:post, "#{meter_service_base_url}usage/events")
         .with(
           headers: {
             'x-api-key' => api_key,
@@ -153,6 +144,7 @@ RSpec.describe MetrifoxSDK::Usages::Module do
             customer_key: customer_key,
             event_name: "api_call",
             amount: 3,
+            event_id: "evt_12345",
             metadata: {}
           }.to_json
         )
@@ -164,25 +156,36 @@ RSpec.describe MetrifoxSDK::Usages::Module do
 
       result = usages_module.record_usage(usage_request)
       expect(result).to eq(expected_response)
-      expect(result["statusCode"]).to eq(201)
-      expect(result["data"]["event_name"]).to eq("api_call")
-      expect(result["data"]["amount_recorded"]).to eq(3)
+      expect(result["data"]["feature_key"]).to eq("api_call")
+      expect(result["data"]["quantity"]).to eq(3)
+      expect(result["message"]).to eq("Event received")
     end
 
     it "defaults amount to 1 when not provided" do
       usage_request_no_amount = {
         customer_key: customer_key,
-        event_name: "api_call"
+        event_name: "api_call",
+        event_id: "evt_default_amount"
       }
 
       expected_body = {
         customer_key: customer_key,
         event_name: "api_call",
         amount: 1,
+        event_id: "evt_default_amount",
         metadata: {}
       }
 
-      stub_request(:post, "#{base_url}usage/events")
+      response_body = {
+        "data" => {
+          "customer_key" => customer_key,
+          "quantity" => 1,
+          "feature_key" => "api_call"
+        },
+        "message" => "Event received"
+      }
+
+      stub_request(:post, "#{meter_service_base_url}usage/events")
         .with(
           headers: {
             'x-api-key' => api_key,
@@ -192,12 +195,12 @@ RSpec.describe MetrifoxSDK::Usages::Module do
         )
         .to_return(
           status: 201,
-          body: expected_response.to_json,
+          body: response_body.to_json,
           headers: { 'Content-Type' => 'application/json' }
         )
 
       result = usages_module.record_usage(usage_request_no_amount)
-      expect(result["statusCode"]).to eq(201)
+      expect(result["data"]["quantity"]).to eq(1)
     end
 
     it "handles usage recording errors" do
@@ -212,7 +215,7 @@ RSpec.describe MetrifoxSDK::Usages::Module do
         }
       }
 
-      stub_request(:post, "#{base_url}usage/events")
+      stub_request(:post, "#{meter_service_base_url}usage/events")
         .to_return(
           status: 400,
           body: error_response.to_json,
@@ -234,7 +237,7 @@ RSpec.describe MetrifoxSDK::Usages::Module do
         }
       }
 
-      stub_request(:post, "#{base_url}usage/events")
+      stub_request(:post, "#{meter_service_base_url}usage/events")
         .to_return(
           status: 429,
           body: quota_exceeded_response.to_json,
@@ -272,7 +275,16 @@ RSpec.describe MetrifoxSDK::Usages::Module do
         }
       }
 
-      stub_request(:post, "#{base_url}usage/events")
+      response_body = {
+        "data" => {
+          "customer_key" => customer_key,
+          "quantity" => 2,
+          "feature_key" => "api_call"
+        },
+        "message" => "Event received"
+      }
+
+      stub_request(:post, "#{meter_service_base_url}usage/events")
         .with(
           headers: {
             'x-api-key' => api_key,
@@ -282,12 +294,12 @@ RSpec.describe MetrifoxSDK::Usages::Module do
         )
         .to_return(
           status: 201,
-          body: expected_response.to_json,
+          body: response_body.to_json,
           headers: { 'Content-Type' => 'application/json' }
         )
 
       result = usages_module.record_usage(advanced_usage_request)
-      expect(result["statusCode"]).to eq(201)
+      expect(result["data"]["quantity"]).to eq(2)
     end
 
     it "records usage with UsageEventRequest struct" do
@@ -311,7 +323,16 @@ RSpec.describe MetrifoxSDK::Usages::Module do
         metadata: { source: "test_struct" }
       }
 
-      stub_request(:post, "#{base_url}usage/events")
+      response_body = {
+        "data" => {
+          "customer_key" => customer_key,
+          "quantity" => 1,
+          "feature_key" => "struct_event"
+        },
+        "message" => "Event received"
+      }
+
+      stub_request(:post, "#{meter_service_base_url}usage/events")
         .with(
           headers: {
             'x-api-key' => api_key,
@@ -321,12 +342,12 @@ RSpec.describe MetrifoxSDK::Usages::Module do
         )
         .to_return(
           status: 201,
-          body: expected_response.to_json,
+          body: response_body.to_json,
           headers: { 'Content-Type' => 'application/json' }
         )
 
       result = usages_module.record_usage(struct_request)
-      expect(result["statusCode"]).to eq(201)
+      expect(result["data"]["feature_key"]).to eq("struct_event")
     end
   end
 
@@ -460,6 +481,7 @@ end
 RSpec.describe "MetrifoxSDK Integration" do
   let(:api_key) { "integration-test-key" }
   let(:base_url) { "https://api.example.com/api/v1/" }
+  let(:meter_service_base_url) { MetrifoxSDK::Client::METER_SERVICE_BASE_URL }
 
   before do
     WebMock.disable_net_connect!(allow_localhost: false)
@@ -468,7 +490,10 @@ RSpec.describe "MetrifoxSDK Integration" do
   describe "end-to-end usage flow" do
     it "allows chaining operations across modules" do
       # Initialize SDK
-      metrifox = MetrifoxSDK.init(api_key: api_key, base_url: base_url)
+      metrifox = MetrifoxSDK.init(
+        api_key: api_key,
+        base_url: base_url
+      )
 
       # Stub customer creation
       customer_response = {
@@ -486,12 +511,22 @@ RSpec.describe "MetrifoxSDK Integration" do
 
       # Stub access check
       access_response = {
-        "statusCode" => 200,
-        "message" => "Access check completed",
-        "data" => { "can_access" => true, "balance" => 95 }
+        "data" => {
+          "customer_key" => "test_customer_123",
+          "feature_key" => "premium_feature",
+          "requested_quantity" => 1,
+          "can_access" => true,
+          "unlimited" => false,
+          "balance" => 95,
+          "used_quantity" => 0,
+          "entitlement_active" => true,
+          "prepaid" => false,
+          "wallet_balance" => 0,
+          "message" => "Feature found"
+        }
       }
 
-      stub_request(:get, "#{base_url}usage/access")
+      stub_request(:get, "#{meter_service_base_url}usage/access")
         .to_return(
           status: 200,
           body: access_response.to_json,
@@ -500,12 +535,15 @@ RSpec.describe "MetrifoxSDK Integration" do
 
       # Stub usage recording
       usage_response = {
-        "statusCode" => 201,
-        "message" => "Usage recorded successfully",
-        "data" => { "event_name" => "api_call", "amount_recorded" => 1 }
+        "data" => {
+          "customer_key" => "test_customer_123",
+          "quantity" => 1,
+          "feature_key" => "api_call"
+        },
+        "message" => "Event received"
       }
 
-      stub_request(:post, "#{base_url}usage/events")
+      stub_request(:post, "#{meter_service_base_url}usage/events")
         .to_return(
           status: 201,
           body: usage_response.to_json,
@@ -527,22 +565,26 @@ RSpec.describe "MetrifoxSDK Integration" do
       usage_result = metrifox.usages.record_usage({
                                                     customer_key: "test_customer_123",
                                                     event_name: "api_call",
-                                                    amount: 1
+                                                    amount: 1,
+                                                    event_id: "evt_integration"
                                                   })
 
       expect(customer_result["statusCode"]).to eq(201)
       expect(access_result["data"]["can_access"]).to be true
-      expect(usage_result["statusCode"]).to eq(201)
+      expect(usage_result["data"]["quantity"]).to eq(1)
     end
 
     it "maintains consistent error handling across modules" do
-      metrifox = MetrifoxSDK.init(api_key: api_key, base_url: base_url)
+      metrifox = MetrifoxSDK.init(
+        api_key: api_key,
+        base_url: base_url
+      )
 
       # Stub error responses for both modules
       stub_request(:post, "#{base_url}customers/new")
         .to_return(status: 500, body: '{"message": "Internal Server Error"}')
 
-      stub_request(:get, "#{base_url}usage/access")
+      stub_request(:get, "#{meter_service_base_url}usage/access")
         .to_return(status: 500, body: '{"message": "Internal Server Error"}')
 
       expect { metrifox.customers.create({}) }
