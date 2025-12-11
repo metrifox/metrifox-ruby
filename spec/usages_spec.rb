@@ -155,9 +155,9 @@ RSpec.describe MetrifoxSDK::Usages::Module do
           body: {
             customer_key: customer_key,
             amount: 3,
+            event_id: "evt_12345",
             metadata: {},
-            feature_key: usage_feature_key,
-            event_id: "evt_12345"
+            feature_key: usage_feature_key
           }.to_json
         )
         .to_return(
@@ -182,9 +182,9 @@ RSpec.describe MetrifoxSDK::Usages::Module do
       expected_body = {
         customer_key: customer_key,
         amount: 1,
-        event_name: "api_call",
+        event_id: "evt_default_amount",
         metadata: {},
-        event_id: "evt_default_amount"
+        event_name: "api_call"
       }
 
       response_body = {
@@ -254,14 +254,14 @@ RSpec.describe MetrifoxSDK::Usages::Module do
       expected_body = {
         customer_key: customer_key,
         amount: 2,
-        event_name: "api_call",
+        event_id: "event_uuid_123",
         credit_used: 5,
         timestamp: 1640995200,
         metadata: {
           source: "web_app",
           feature: "premium_search"
         },
-        event_id: "event_uuid_123"
+        event_name: "api_call"
       }
 
       response_body = {
@@ -305,11 +305,11 @@ RSpec.describe MetrifoxSDK::Usages::Module do
       expected_body = {
         customer_key: customer_key,
         amount: 1,
-        event_name: "struct_event",
+        event_id: "struct_event_123",
         credit_used: 3,
         timestamp: 1640995200,
         metadata: { source: "test_struct" },
-        event_id: "struct_event_123"
+        event_name: "struct_event"
       }
 
       response_body = {
@@ -378,9 +378,9 @@ RSpec.describe MetrifoxSDK::Usages::Module do
           body: {
             customer_key: customer_key,
             amount: 1,
+            event_id: "evt_feature_only",
             metadata: {},
-            feature_key: "feature_job_posts",
-            event_id: "evt_feature_only"
+            feature_key: "feature_job_posts"
           }.to_json
         )
         .to_return(
@@ -660,10 +660,10 @@ RSpec.describe "MetrifoxSDK Integration" do
           },
           body: {
             customer_key: customer_key,
-            feature_key: "feature_job_posts",
             amount: 1,
+            event_id: "evt_feature_only",
             metadata: {},
-            event_id: "evt_feature_only"
+            feature_key: "feature_job_posts"
           }.to_json
         )
         .to_return(
