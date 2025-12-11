@@ -17,6 +17,17 @@ RSpec.describe MetrifoxSDK::Usages::Module do
   let(:usages_module) { client.usages }
   let(:customer_key) { "test_customer_123" }
   let(:feature_key) { "premium_feature" }
+  let(:usage_feature_key) { "feature_job_posts" }
+  let(:expected_response) do
+    {
+      "data" => {
+        "customer_key" => customer_key,
+        "quantity" => 3,
+        "feature_key" => usage_feature_key
+      },
+      "message" => "Event received"
+    }
+  end
 
   before do
     WebMock.disable_net_connect!(allow_localhost: false)
@@ -110,24 +121,25 @@ RSpec.describe MetrifoxSDK::Usages::Module do
       expect { usages_module_empty_key.check_access(access_request) }
         .to raise_error(MetrifoxSDK::ConfigurationError, /API key required/)
     end
+
   end
 
   describe "#record_usage" do
     let(:usage_request) do
       {
         customer_key: customer_key,
-        event_name: "api_call",
+        feature_key: usage_feature_key,
         amount: 3,
         event_id: "evt_12345"
       }
     end
 
-    let(:expected_response) do
+    let(:response) do
       {
         "data" => {
           "customer_key" => customer_key,
           "quantity" => 3,
-          "feature_key" => "api_call"
+          "feature_key" => usage_feature_key
         },
         "message" => "Event received"
       }
@@ -142,21 +154,20 @@ RSpec.describe MetrifoxSDK::Usages::Module do
           },
           body: {
             customer_key: customer_key,
-            event_name: "api_call",
             amount: 3,
-            event_id: "evt_12345",
-            metadata: {}
+            metadata: {},
+            feature_key: usage_feature_key,
+            event_id: "evt_12345"
           }.to_json
         )
         .to_return(
           status: 201,
-          body: expected_response.to_json,
+          body: response.to_json,
           headers: { 'Content-Type' => 'application/json' }
         )
 
       result = usages_module.record_usage(usage_request)
-      expect(result).to eq(expected_response)
-      expect(result["data"]["feature_key"]).to eq("api_call")
+      expect(result["data"]["feature_key"]).to eq(usage_feature_key)
       expect(result["data"]["quantity"]).to eq(3)
       expect(result["message"]).to eq("Event received")
     end
@@ -170,17 +181,17 @@ RSpec.describe MetrifoxSDK::Usages::Module do
 
       expected_body = {
         customer_key: customer_key,
-        event_name: "api_call",
         amount: 1,
-        event_id: "evt_default_amount",
-        metadata: {}
+        event_name: "api_call",
+        metadata: {},
+        event_id: "evt_default_amount"
       }
 
       response_body = {
         "data" => {
           "customer_key" => customer_key,
           "quantity" => 1,
-          "feature_key" => "api_call"
+          "feature_key" => usage_feature_key
         },
         "message" => "Event received"
       }
@@ -226,28 +237,6 @@ RSpec.describe MetrifoxSDK::Usages::Module do
         .to raise_error(MetrifoxSDK::APIError, /Failed to record usage: 400/)
     end
 
-    it "handles quota exceeded" do
-      quota_exceeded_response = {
-        "statusCode" => 429,
-        "message" => "Usage quota exceeded",
-        "meta" => {},
-        "data" => nil,
-        "errors" => {
-          "quota" => ["Monthly usage limit reached"]
-        }
-      }
-
-      stub_request(:post, "#{meter_service_base_url}usage/events")
-        .to_return(
-          status: 429,
-          body: quota_exceeded_response.to_json,
-          headers: { 'Content-Type' => 'application/json' }
-        )
-
-      expect { usages_module.record_usage(usage_request) }
-        .to raise_error(MetrifoxSDK::APIError, /Failed to record usage: 429/)
-    end
-
     it "records usage with additional fields" do
       advanced_usage_request = {
         customer_key: customer_key,
@@ -264,15 +253,15 @@ RSpec.describe MetrifoxSDK::Usages::Module do
 
       expected_body = {
         customer_key: customer_key,
-        event_name: "api_call",
         amount: 2,
+        event_name: "api_call",
         credit_used: 5,
-        event_id: "event_uuid_123",
         timestamp: 1640995200,
         metadata: {
           source: "web_app",
           feature: "premium_search"
-        }
+        },
+        event_id: "event_uuid_123"
       }
 
       response_body = {
@@ -315,12 +304,12 @@ RSpec.describe MetrifoxSDK::Usages::Module do
 
       expected_body = {
         customer_key: customer_key,
-        event_name: "struct_event",
         amount: 1,
+        event_name: "struct_event",
         credit_used: 3,
-        event_id: "struct_event_123",
         timestamp: 1640995200,
-        metadata: { source: "test_struct" }
+        metadata: { source: "test_struct" },
+        event_id: "struct_event_123"
       }
 
       response_body = {
@@ -348,6 +337,67 @@ RSpec.describe MetrifoxSDK::Usages::Module do
 
       result = usages_module.record_usage(struct_request)
       expect(result["data"]["feature_key"]).to eq("struct_event")
+    end
+
+    it "handles quota exceeded" do
+      quota_exceeded_response = {
+        "statusCode" => 429,
+        "message" => "Usage quota exceeded",
+        "meta" => {},
+        "data" => nil,
+        "errors" => {
+          "quota" => ["Monthly usage limit reached"]
+        }
+      }
+
+      stub_request(:post, "#{meter_service_base_url}usage/events")
+        .to_return(
+          status: 429,
+          body: quota_exceeded_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      expect { usages_module.record_usage(usage_request) }
+        .to raise_error(MetrifoxSDK::APIError, /Failed to record usage: 429/)
+    end
+
+    it "records usage with feature_key when event_name is absent" do
+      feature_usage_request = {
+        customer_key: customer_key,
+        feature_key: "feature_job_posts",
+        amount: 1,
+        event_id: "evt_feature_only"
+      }
+
+      stub_request(:post, "#{meter_service_base_url}usage/events")
+        .with(
+          headers: {
+            'x-api-key' => api_key,
+            'Content-Type' => 'application/json'
+          },
+          body: {
+            customer_key: customer_key,
+            amount: 1,
+            metadata: {},
+            feature_key: "feature_job_posts",
+            event_id: "evt_feature_only"
+          }.to_json
+        )
+        .to_return(
+          status: 201,
+          body: {
+            "data" => {
+              "customer_key" => customer_key,
+              "quantity" => 1,
+              "feature_key" => "feature_job_posts"
+            },
+            "message" => "Event received"
+          }.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = usages_module.record_usage(feature_usage_request)
+      expect(result["data"]["feature_key"]).to eq("feature_job_posts")
     end
   end
 
@@ -592,6 +642,38 @@ RSpec.describe "MetrifoxSDK Integration" do
 
       expect { metrifox.usages.check_access({}) }
         .to raise_error(MetrifoxSDK::APIError, /Failed to check access: 500/)
+    end
+
+    it "records usage with feature_key when event_name is absent" do
+      feature_usage_request = {
+        customer_key: customer_key,
+        feature_key: "feature_job_posts",
+        amount: 1,
+        event_id: "evt_feature_only"
+      }
+
+      stub_request(:post, "#{meter_service_base_url}usage/events")
+        .with(
+          headers: {
+            'x-api-key' => api_key,
+            'Content-Type' => 'application/json'
+          },
+          body: {
+            customer_key: customer_key,
+            feature_key: "feature_job_posts",
+            amount: 1,
+            metadata: {},
+            event_id: "evt_feature_only"
+          }.to_json
+        )
+        .to_return(
+          status: 201,
+          body: expected_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = usages_module.record_usage(feature_usage_request)
+      expect(result["data"]["feature_key"]).to eq("feature_job_posts")
     end
   end
 end

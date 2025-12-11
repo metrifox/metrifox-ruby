@@ -79,7 +79,7 @@ response = METRIFOX_SDK.usages.record_usage({
   customer_key: "customer_123",
   event_name: "api_call",
   amount: 1,
-  event_id: "evt_12345", # optional but recommended idempotency key
+  event_id: "evt_12345", # required idempotency key
   timestamp: (Time.now.to_f * 1000).to_i # recommended (milliseconds)
 })
 puts response["message"] # "Event received"
@@ -88,14 +88,16 @@ puts response["data"]["quantity"] # 1
 
 The usage event endpoint now returns a simple payload with the recorded `data` and a `message` confirming the event reception.
 
+> You can send either an `event_name` or a `feature_key` when recording usage events.
+
 ```ruby
 # Advanced usage recording with additional fields
 response = METRIFOX_SDK.usages.record_usage({
   customer_key: "customer_123",
-  event_name: "api_call",
+  event_name: "api_call", # Or use feature_key
   amount: 1,
+  event_id: "event_uuid_123", # required idempotency key
   credit_used: 5,
-  event_id: "event_uuid_123",
   timestamp: (Time.now.to_f * 1000).to_i,
   metadata: {
     source: "web_app",
@@ -106,7 +108,7 @@ response = METRIFOX_SDK.usages.record_usage({
 # Using structured request object
 usage_request = MetrifoxSDK::Types::UsageEventRequest.new(
   customer_key: "customer_123",
-  event_name: "api_call",
+  feature_key: "feat_my_feat_234", # OR use event_name
   amount: 1,
   credit_used: 5,
   event_id: "event_uuid_123",
@@ -245,10 +247,10 @@ response = METRIFOX_SDK.usages.check_access({
 The SDK exposes lightweight structs for the usage and checkout helpers when you want a bit more structure:
 
 ```ruby
-# Usage events
+# Usage events (event_id required for idempotency)
 usage_request = MetrifoxSDK::Types::UsageEventRequest.new(
   customer_key: "customer_123",
-  event_name: "api_call",
+  feature_key: "feature_seats",
   amount: 1,
   event_id: "event_uuid_123",
   timestamp: (Time.now.to_f * 1000).to_i,
