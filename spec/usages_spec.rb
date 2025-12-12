@@ -129,7 +129,7 @@ RSpec.describe MetrifoxSDK::Usages::Module do
       {
         customer_key: customer_key,
         feature_key: usage_feature_key,
-        amount: 3,
+        quantity: 3,
         event_id: "evt_12345"
       }
     end
@@ -154,7 +154,7 @@ RSpec.describe MetrifoxSDK::Usages::Module do
           },
           body: {
             customer_key: customer_key,
-            amount: 3,
+            quantity: 3,
             event_id: "evt_12345",
             metadata: {},
             feature_key: usage_feature_key
@@ -181,7 +181,7 @@ RSpec.describe MetrifoxSDK::Usages::Module do
 
       expected_body = {
         customer_key: customer_key,
-        amount: 1,
+        quantity: 1,
         event_id: "evt_default_amount",
         metadata: {},
         event_name: "api_call"
@@ -222,7 +222,7 @@ RSpec.describe MetrifoxSDK::Usages::Module do
         "data" => nil,
         "errors" => {
           "event_name" => ["is required"],
-          "amount" => ["must be positive"]
+          "quantity" => ["must be positive"]
         }
       }
 
@@ -241,7 +241,7 @@ RSpec.describe MetrifoxSDK::Usages::Module do
       advanced_usage_request = {
         customer_key: customer_key,
         event_name: "api_call",
-        amount: 2,
+        quantity: 2,
         credit_used: 5,
         event_id: "event_uuid_123",
         timestamp: 1640995200,
@@ -253,7 +253,7 @@ RSpec.describe MetrifoxSDK::Usages::Module do
 
       expected_body = {
         customer_key: customer_key,
-        amount: 2,
+        quantity: 2,
         event_id: "event_uuid_123",
         credit_used: 5,
         timestamp: 1640995200,
@@ -295,7 +295,7 @@ RSpec.describe MetrifoxSDK::Usages::Module do
       struct_request = MetrifoxSDK::Types::UsageEventRequest.new(
         customer_key: customer_key,
         event_name: "struct_event",
-        amount: 1,
+        quantity: 1,
         credit_used: 3,
         event_id: "struct_event_123",
         timestamp: 1640995200,
@@ -304,7 +304,7 @@ RSpec.describe MetrifoxSDK::Usages::Module do
 
       expected_body = {
         customer_key: customer_key,
-        amount: 1,
+        quantity: 1,
         event_id: "struct_event_123",
         credit_used: 3,
         timestamp: 1640995200,
@@ -365,7 +365,7 @@ RSpec.describe MetrifoxSDK::Usages::Module do
       feature_usage_request = {
         customer_key: customer_key,
         feature_key: "feature_job_posts",
-        amount: 1,
+        quantity: 1,
         event_id: "evt_feature_only"
       }
 
@@ -377,7 +377,7 @@ RSpec.describe MetrifoxSDK::Usages::Module do
           },
           body: {
             customer_key: customer_key,
-            amount: 1,
+            quantity: 1,
             event_id: "evt_feature_only",
             metadata: {},
             feature_key: "feature_job_posts"
@@ -615,7 +615,7 @@ RSpec.describe "MetrifoxSDK Integration" do
       usage_result = metrifox.usages.record_usage({
                                                     customer_key: "test_customer_123",
                                                     event_name: "api_call",
-                                                    amount: 1,
+                                                    quantity: 1,
                                                     event_id: "evt_integration"
                                                   })
 
@@ -648,7 +648,7 @@ RSpec.describe "MetrifoxSDK Integration" do
       feature_usage_request = {
         customer_key: customer_key,
         feature_key: "feature_job_posts",
-        amount: 1,
+        quantity: 1,
         event_id: "evt_feature_only"
       }
 

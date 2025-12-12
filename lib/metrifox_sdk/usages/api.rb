@@ -28,7 +28,7 @@ module MetrifoxSDK::Usages
       # Handle both hash and struct access patterns
       customer_key = get_value(request_payload, :customer_key)
       event_name = get_value(request_payload, :event_name)
-      amount = get_value(request_payload, :amount) || 1
+      quantity = get_value(request_payload, :quantity) || 1
       credit_used = get_value(request_payload, :credit_used)
       event_id = get_value(request_payload, :event_id)
       timestamp = get_value(request_payload, :timestamp)
@@ -37,7 +37,7 @@ module MetrifoxSDK::Usages
 
       body = {
         customer_key:,
-        amount:,
+        quantity:,
         event_id:
       }
 
