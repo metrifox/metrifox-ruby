@@ -6,12 +6,12 @@ module MetrifoxSDK
     class Module < BaseModule
       def check_access(request_payload)
         validate_api_key!
-        api.fetch_access(base_url, api_key, request_payload)
+        api.fetch_access(meter_service_base_url, api_key, request_payload)
       end
 
       def record_usage(request_payload)
         validate_api_key!
-        api.fetch_usage(base_url, api_key, request_payload)
+        api.record_usage(meter_service_base_url, api_key, request_payload)
       end
 
       def get_tenant_id
@@ -25,6 +25,10 @@ module MetrifoxSDK
       end
 
       private
+
+      def meter_service_base_url
+        client.respond_to?(:meter_service_base_url) ? client.meter_service_base_url : base_url
+      end
 
       def api
         @api ||= API.new

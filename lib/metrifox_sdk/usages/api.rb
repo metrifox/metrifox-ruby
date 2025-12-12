@@ -22,7 +22,7 @@ module MetrifoxSDK::Usages
       parse_response(response, "Failed to check access")
     end
 
-    def fetch_usage(base_url, api_key, request_payload)
+    def record_usage(base_url, api_key, request_payload)
       uri = URI.join(base_url, "usage/events")
 
       # Handle both hash and struct access patterns
@@ -33,18 +33,20 @@ module MetrifoxSDK::Usages
       event_id = get_value(request_payload, :event_id)
       timestamp = get_value(request_payload, :timestamp)
       metadata = get_value(request_payload, :metadata) || {}
+      feature_key = get_value(request_payload, :feature_key)
 
       body = {
-        customer_key: customer_key,
-        event_name: event_name,
-        amount: amount
+        customer_key:,
+        amount:,
+        event_id:
       }
 
       # Add optional fields if present
       body[:credit_used] = credit_used if credit_used
-      body[:event_id] = event_id if event_id && !event_id.empty?
       body[:timestamp] = timestamp if timestamp
       body[:metadata] = metadata if metadata
+      body[:feature_key] = feature_key if feature_key
+      body[:event_name] = event_name if event_name
 
       response = make_request(uri, "POST", api_key, body)
       parse_response(response, "Failed to record usage")
