@@ -30,6 +30,10 @@ module MetrifoxSDK
       @checkout ||= Checkout::Module.new(self)
     end
 
+    def subscriptions
+      @subscriptions ||= Subscriptions::Module.new(self)
+    end
+
     private
 
     def get_api_key_from_environment

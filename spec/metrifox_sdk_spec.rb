@@ -59,6 +59,11 @@ RSpec.describe MetrifoxSDK do
       expect(client.usages).to be_a(MetrifoxSDK::Usages::Module)
     end
 
+    it "provides access to subscriptions module" do
+      client = MetrifoxSDK.init(api_key: "test-key")
+      expect(client.subscriptions).to be_a(MetrifoxSDK::Subscriptions::Module)
+    end
+
     it "returns the same module instance on multiple calls" do
       client = MetrifoxSDK.init(api_key: "test-key")
       customers1 = client.customers
@@ -97,6 +102,13 @@ RSpec.describe MetrifoxSDK do
       expect(usages).to respond_to(:record_usage)
       expect(usages).to respond_to(:get_tenant_id)
       expect(usages).to respond_to(:get_checkout_key)
+    end
+
+    it "subscriptions module responds to expected methods" do
+      subscriptions = client.subscriptions
+      expect(subscriptions).to respond_to(:get_billing_history)
+      expect(subscriptions).to respond_to(:get_entitlements_summary)
+      expect(subscriptions).to respond_to(:get_entitlements_usage)
     end
   end
 end

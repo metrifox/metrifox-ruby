@@ -9,6 +9,8 @@ require_relative "metrifox_sdk/customers/module"
 require_relative "metrifox_sdk/usages/module"
 require_relative "metrifox_sdk/checkout/api"
 require_relative "metrifox_sdk/checkout/module"
+require_relative "metrifox_sdk/subscriptions/api"
+require_relative "metrifox_sdk/subscriptions/module"
 
 module MetrifoxSDK
   class << self
