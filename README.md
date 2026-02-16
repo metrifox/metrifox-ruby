@@ -232,6 +232,26 @@ checkout_config = MetrifoxSDK::Types::CheckoutConfig.new(
 checkout_url = METRIFOX_SDK.checkout.url(checkout_config)
 ```
 
+### Subscriptions
+
+```ruby
+# Get billing history for a subscription
+response = METRIFOX_SDK.subscriptions.get_billing_history("subscription_uuid")
+puts response["data"]
+```
+
+```ruby
+# Get entitlements summary for a subscription
+response = METRIFOX_SDK.subscriptions.get_entitlements_summary("subscription_uuid")
+puts response["data"]
+```
+
+```ruby
+# Get entitlements usage for a subscription
+response = METRIFOX_SDK.subscriptions.get_entitlements_usage("subscription_uuid")
+puts response["data"]
+```
+
 ### Using Client Instance
 
 ```ruby
@@ -283,6 +303,12 @@ rescue MetrifoxSDK::ConfigurationError => e
   puts "Configuration Error: #{e.message}"
 end
 ```
+
+## SSL Certificate Handling
+
+The SDK configures a custom `OpenSSL::X509::Store` with system default certificate paths for all HTTPS requests. This ensures reliable SSL connections across different Ruby and OpenSSL versions, including environments where strict CRL (Certificate Revocation List) checking may cause verification failures.
+
+No additional configuration is needed — SSL is handled automatically when making API calls.
 
 ## Development
 
