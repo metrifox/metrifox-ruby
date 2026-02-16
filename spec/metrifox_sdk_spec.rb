@@ -2,7 +2,7 @@ require 'spec_helper'
 
 RSpec.describe MetrifoxSDK do
   it "has a version number" do
-    expect(MetrifoxSdk::VERSION).not_to be nil
+    expect(MetrifoxSDK::VERSION).not_to be nil
   end
 
   describe ".init" do
@@ -42,7 +42,7 @@ RSpec.describe MetrifoxSDK do
     end
 
     it "uses environment variable for API key when not provided" do
-      allow(MetrifoxSdk::UtilMethods).to receive(:load_dotenv)
+      allow(MetrifoxSDK::UtilMethods).to receive(:load_dotenv)
       allow(ENV).to receive(:[]).with("METRIFOX_API_KEY").and_return("env-api-key")
 
       client = MetrifoxSDK.init
