@@ -1,6 +1,7 @@
 require "net/http"
 require "uri"
 require "json"
+require "openssl"
 require "mime/types"
 
 module MetrifoxSDK
@@ -20,6 +21,11 @@ module MetrifoxSDK
     def make_raw_request(uri, method, headers, body = nil)
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = uri.scheme == "https"
+      if http.use_ssl?
+        cert_store = OpenSSL::X509::Store.new
+        cert_store.set_default_paths
+        http.cert_store = cert_store
+      end
 
       request = case method
                 when "GET"

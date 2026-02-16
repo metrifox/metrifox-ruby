@@ -577,6 +577,7 @@ RSpec.describe "MetrifoxSDK Integration" do
       }
 
       stub_request(:get, "#{meter_service_base_url}usage/access")
+        .with(query: { customer_key: "test_customer_123", feature_key: "premium_feature" })
         .to_return(
           status: 200,
           body: access_response.to_json,
@@ -634,7 +635,7 @@ RSpec.describe "MetrifoxSDK Integration" do
       stub_request(:post, "#{base_url}customers/new")
         .to_return(status: 500, body: '{"message": "Internal Server Error"}')
 
-      stub_request(:get, "#{meter_service_base_url}usage/access")
+      stub_request(:get, /#{Regexp.escape(meter_service_base_url)}usage\/access/)
         .to_return(status: 500, body: '{"message": "Internal Server Error"}')
 
       expect { metrifox.customers.create({}) }
@@ -645,11 +646,25 @@ RSpec.describe "MetrifoxSDK Integration" do
     end
 
     it "records usage with feature_key when event_name is absent" do
+      metrifox = MetrifoxSDK.init(
+        api_key: api_key,
+        base_url: base_url
+      )
+
       feature_usage_request = {
-        customer_key: customer_key,
+        customer_key: "test_customer_123",
         feature_key: "feature_job_posts",
         quantity: 1,
         event_id: "evt_feature_only"
+      }
+
+      usage_response = {
+        "data" => {
+          "customer_key" => "test_customer_123",
+          "quantity" => 1,
+          "feature_key" => "feature_job_posts"
+        },
+        "message" => "Event received"
       }
 
       stub_request(:post, "#{meter_service_base_url}usage/events")
@@ -659,8 +674,8 @@ RSpec.describe "MetrifoxSDK Integration" do
             'Content-Type' => 'application/json'
           },
           body: {
-            customer_key: customer_key,
-            amount: 1,
+            customer_key: "test_customer_123",
+            quantity: 1,
             event_id: "evt_feature_only",
             metadata: {},
             feature_key: "feature_job_posts"
@@ -668,11 +683,11 @@ RSpec.describe "MetrifoxSDK Integration" do
         )
         .to_return(
           status: 201,
-          body: expected_response.to_json,
+          body: usage_response.to_json,
           headers: { 'Content-Type' => 'application/json' }
         )
 
-      result = usages_module.record_usage(feature_usage_request)
+      result = metrifox.usages.record_usage(feature_usage_request)
       expect(result["data"]["feature_key"]).to eq("feature_job_posts")
     end
   end

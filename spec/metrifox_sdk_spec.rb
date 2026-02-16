@@ -2,7 +2,7 @@ require 'spec_helper'
 
 RSpec.describe MetrifoxSDK do
   it "has a version number" do
-    expect(MetrifoxSdk::VERSION).not_to be nil
+    expect(MetrifoxSDK::VERSION).not_to be nil
   end
 
   describe ".init" do
@@ -42,7 +42,7 @@ RSpec.describe MetrifoxSDK do
     end
 
     it "uses environment variable for API key when not provided" do
-      allow(MetrifoxSdk::UtilMethods).to receive(:load_dotenv)
+      allow(MetrifoxSDK::UtilMethods).to receive(:load_dotenv)
       allow(ENV).to receive(:[]).with("METRIFOX_API_KEY").and_return("env-api-key")
 
       client = MetrifoxSDK.init
@@ -57,6 +57,11 @@ RSpec.describe MetrifoxSDK do
     it "provides access to usages module" do
       client = MetrifoxSDK.init(api_key: "test-key")
       expect(client.usages).to be_a(MetrifoxSDK::Usages::Module)
+    end
+
+    it "provides access to subscriptions module" do
+      client = MetrifoxSDK.init(api_key: "test-key")
+      expect(client.subscriptions).to be_a(MetrifoxSDK::Subscriptions::Module)
     end
 
     it "returns the same module instance on multiple calls" do
@@ -97,6 +102,13 @@ RSpec.describe MetrifoxSDK do
       expect(usages).to respond_to(:record_usage)
       expect(usages).to respond_to(:get_tenant_id)
       expect(usages).to respond_to(:get_checkout_key)
+    end
+
+    it "subscriptions module responds to expected methods" do
+      subscriptions = client.subscriptions
+      expect(subscriptions).to respond_to(:get_billing_history)
+      expect(subscriptions).to respond_to(:get_entitlements_summary)
+      expect(subscriptions).to respond_to(:get_entitlements_usage)
     end
   end
 end
