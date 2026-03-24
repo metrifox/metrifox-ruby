@@ -19,6 +19,19 @@ module MetrifoxSDK
         api.entitlements_usage_request(base_url, api_key, subscription_id)
       end
 
+      def bulk_assign_plan(customer_keys:, plan_key:, billing_interval: nil, currency_code: nil, items: nil, skip_invoice: nil)
+        validate_api_key!
+        request_payload = {
+          customer_keys: customer_keys,
+          plan_key: plan_key,
+          billing_interval: billing_interval,
+          currency_code: currency_code,
+          items: items,
+          skip_invoice: skip_invoice
+        }.compact
+        api.bulk_assign_plan_request(base_url, api_key, request_payload)
+      end
+
       private
 
       def api
