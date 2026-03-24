@@ -54,6 +54,11 @@ module MetrifoxSDK
         api.upload_customers_csv(base_url, api_key, file_path)
       end
 
+      def bulk_create(request_payload)
+        validate_api_key!
+        api.bulk_create_request(base_url, api_key, request_payload)
+      end
+
       private
 
       def api

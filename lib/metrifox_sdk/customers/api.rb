@@ -75,6 +75,13 @@ module MetrifoxSDK::Customers
       parse_response(response, "Failed to upload CSV")
     end
 
+    def bulk_create_request(base_url, api_key, request_payload)
+      uri = URI.join(base_url, "customers/bulk-create")
+      body = serialize_customer_request(request_payload)
+      response = make_request(uri, "POST", api_key, body)
+      parse_response(response, "Failed to Bulk Create Customers")
+    end
+
     private
 
     def serialize_customer_request(request)

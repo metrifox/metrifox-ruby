@@ -572,6 +572,154 @@ RSpec.describe MetrifoxSDK::Customers::Module do
     end
   end
 
+  describe "#bulk_create" do
+    let(:bulk_payload) do
+      {
+        customers: [
+          {
+            customer_type: "BUSINESS",
+            customer_key: "acme_corp_001",
+            primary_email: "contact@acmecorp.com",
+            legal_name: "Acme Corporation",
+            display_name: "Acme Corp"
+          },
+          {
+            customer_type: "INDIVIDUAL",
+            customer_key: "jane_doe_001",
+            primary_email: "jane@example.com",
+            first_name: "Jane",
+            last_name: "Doe"
+          }
+        ]
+      }
+    end
+
+    let(:expected_response) do
+      {
+        "statusCode" => 200,
+        "message" => "Bulk Customer Creation Completed",
+        "meta" => {},
+        "data" => {
+          "total" => 2,
+          "successful_count" => 2,
+          "failed_count" => 0,
+          "customers_created" => [
+            {
+              "index" => 0,
+              "customer_key" => "acme_corp_001",
+              "data" => {
+                "id" => "764c80e3-ed59-44a5-ba07-7ee5ba547774",
+                "customer_type" => "BUSINESS",
+                "primary_email" => "contact@acmecorp.com",
+                "display_name" => "Acme Corp"
+              }
+            },
+            {
+              "index" => 1,
+              "customer_key" => "jane_doe_001",
+              "data" => {
+                "id" => "864c80e3-ed59-44a5-ba07-7ee5ba547775",
+                "customer_type" => "INDIVIDUAL",
+                "primary_email" => "jane@example.com",
+                "display_name" => "Jane Doe"
+              }
+            }
+          ],
+          "customers_failed" => []
+        },
+        "errors" => {}
+      }
+    end
+
+    it "bulk creates customers successfully" do
+      stub_request(:post, "#{base_url}customers/bulk-create")
+        .with(
+          headers: {
+            'x-api-key' => api_key,
+            'Content-Type' => 'application/json'
+          },
+          body: bulk_payload.to_json
+        )
+        .to_return(
+          status: 200,
+          body: expected_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = customers_module.bulk_create(bulk_payload)
+      expect(result).to eq(expected_response)
+      expect(result["statusCode"]).to eq(200)
+      expect(result["data"]["successful_count"]).to eq(2)
+      expect(result["data"]["failed_count"]).to eq(0)
+      expect(result["data"]["customers_created"].length).to eq(2)
+    end
+
+    it "handles partial failures" do
+      partial_response = {
+        "statusCode" => 200,
+        "message" => "Bulk Customer Creation Completed",
+        "meta" => {},
+        "data" => {
+          "total" => 2,
+          "successful_count" => 1,
+          "failed_count" => 1,
+          "customers_created" => [
+            {
+              "index" => 0,
+              "customer_key" => "acme_corp_001",
+              "data" => {
+                "id" => "764c80e3-ed59-44a5-ba07-7ee5ba547774",
+                "customer_type" => "BUSINESS",
+                "primary_email" => "contact@acmecorp.com",
+                "display_name" => "Acme Corp"
+              }
+            }
+          ],
+          "customers_failed" => [
+            {
+              "index" => 1,
+              "customer_key" => "jane_doe_001",
+              "error" => "Primary email has already been used"
+            }
+          ]
+        },
+        "errors" => {}
+      }
+
+      stub_request(:post, "#{base_url}customers/bulk-create")
+        .to_return(
+          status: 200,
+          body: partial_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = customers_module.bulk_create(bulk_payload)
+      expect(result["data"]["successful_count"]).to eq(1)
+      expect(result["data"]["failed_count"]).to eq(1)
+      expect(result["data"]["customers_failed"].first["error"]).to eq("Primary email has already been used")
+    end
+
+    it "handles API errors" do
+      error_response = {
+        "statusCode" => 400,
+        "message" => "At least one customer is required for bulk creation",
+        "meta" => {},
+        "data" => nil,
+        "errors" => {}
+      }
+
+      stub_request(:post, "#{base_url}customers/bulk-create")
+        .to_return(
+          status: 400,
+          body: error_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      expect { customers_module.bulk_create({ customers: [] }) }
+        .to raise_error(MetrifoxSDK::APIError, /Failed to Bulk Create Customers: 400/)
+    end
+  end
+
   describe "#list" do
     let(:expected_response) do
       {
