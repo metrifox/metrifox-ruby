@@ -236,4 +236,141 @@ RSpec.describe MetrifoxSDK::Subscriptions::Module do
         .to raise_error(MetrifoxSDK::APIError, /Failed to Fetch Entitlements Usage: 500/)
     end
   end
+
+  describe "#bulk_assign_plan" do
+    let(:expected_response) do
+      {
+        "statusCode" => 200,
+        "message" => "Bulk Plan Assignment Completed",
+        "meta" => {},
+        "data" => {
+          "succeeded" => [
+            { "customer_key" => "cust_001", "subscription_id" => "sub_001" },
+            { "customer_key" => "cust_002", "subscription_id" => "sub_002" }
+          ],
+          "failed" => []
+        },
+        "errors" => {}
+      }
+    end
+
+    it "bulk assigns a plan to multiple customers" do
+      expected_body = {
+        customer_keys: ["cust_001", "cust_002"],
+        plan_key: "pro-plan",
+        billing_interval: "monthly"
+      }
+
+      stub_request(:post, "#{base_url}subscriptions/bulk-assign-plan")
+        .with(
+          headers: {
+            'x-api-key' => api_key,
+            'Content-Type' => 'application/json'
+          },
+          body: expected_body.to_json
+        )
+        .to_return(
+          status: 200,
+          body: expected_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = subscriptions_module.bulk_assign_plan(
+        customer_keys: ["cust_001", "cust_002"],
+        plan_key: "pro-plan",
+        billing_interval: "monthly"
+      )
+      expect(result).to eq(expected_response)
+      expect(result["statusCode"]).to eq(200)
+      expect(result["data"]["succeeded"].length).to eq(2)
+      expect(result["data"]["failed"]).to be_empty
+    end
+
+    it "sends all optional parameters" do
+      expected_body = {
+        customer_keys: ["cust_001"],
+        plan_key: "pro-plan",
+        billing_interval: "yearly",
+        currency_code: "EUR",
+        items: [{ feature_key: "api_calls", quantity: 10000 }],
+        skip_invoice: true
+      }
+
+      stub_request(:post, "#{base_url}subscriptions/bulk-assign-plan")
+        .with(
+          headers: {
+            'x-api-key' => api_key,
+            'Content-Type' => 'application/json'
+          },
+          body: expected_body.to_json
+        )
+        .to_return(
+          status: 200,
+          body: expected_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = subscriptions_module.bulk_assign_plan(
+        customer_keys: ["cust_001"],
+        plan_key: "pro-plan",
+        billing_interval: "yearly",
+        currency_code: "EUR",
+        items: [{ feature_key: "api_calls", quantity: 10000 }],
+        skip_invoice: true
+      )
+      expect(result).to eq(expected_response)
+    end
+
+    it "handles partial failures" do
+      partial_response = {
+        "statusCode" => 200,
+        "message" => "Bulk Plan Assignment Completed",
+        "meta" => {},
+        "data" => {
+          "succeeded" => [
+            { "customer_key" => "cust_001", "subscription_id" => "sub_001" }
+          ],
+          "failed" => [
+            { "customer_key" => "cust_002", "error" => "Customer already has an active subscription" }
+          ]
+        },
+        "errors" => {}
+      }
+
+      stub_request(:post, "#{base_url}subscriptions/bulk-assign-plan")
+        .to_return(
+          status: 200,
+          body: partial_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = subscriptions_module.bulk_assign_plan(
+        customer_keys: ["cust_001", "cust_002"],
+        plan_key: "pro-plan"
+      )
+      expect(result["data"]["succeeded"].length).to eq(1)
+      expect(result["data"]["failed"].length).to eq(1)
+      expect(result["data"]["failed"].first["error"]).to eq("Customer already has an active subscription")
+    end
+
+    it "handles API errors" do
+      error_response = {
+        "statusCode" => 401,
+        "message" => "Unauthorized",
+        "meta" => {},
+        "data" => nil,
+        "errors" => {}
+      }
+
+      stub_request(:post, "#{base_url}subscriptions/bulk-assign-plan")
+        .to_return(
+          status: 401,
+          body: error_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      expect { subscriptions_module.bulk_assign_plan(customer_keys: ["cust_001"], plan_key: "pro-plan") }
+        .to raise_error(MetrifoxSDK::APIError, /Failed to Bulk Assign Plan: 401/)
+    end
+  end
 end
