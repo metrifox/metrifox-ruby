@@ -191,6 +191,35 @@ response = METRIFOX_SDK.customers.delete_customer({ customer_key: "customer_123"
 
 ```
 
+### Bulk Create Customers
+
+Create multiple customers in a single API call:
+
+```ruby
+result = METRIFOX_SDK.customers.bulk_create({
+  customers: [
+    {
+      customer_key: "customer_001",
+      customer_type: "BUSINESS",
+      primary_email: "contact@acme.com",
+      legal_name: "Acme Corp",
+      display_name: "Acme"
+    },
+    {
+      customer_key: "customer_002",
+      customer_type: "INDIVIDUAL",
+      primary_email: "jane@example.com",
+      first_name: "Jane",
+      last_name: "Doe"
+    }
+  ]
+})
+
+puts result["data"]["total"]
+puts result["data"]["successful_count"]
+puts result["data"]["failed_count"]
+```
+
 ### CSV Upload
 
 ```ruby
@@ -250,6 +279,26 @@ puts response["data"]
 # Get entitlements usage for a subscription
 response = METRIFOX_SDK.subscriptions.get_entitlements_usage("subscription_uuid")
 puts response["data"]
+```
+
+### Bulk Assign Plan
+
+Assign a plan to multiple customers at once:
+
+```ruby
+result = METRIFOX_SDK.subscriptions.bulk_assign_plan(
+  customer_keys: ["customer_001", "customer_002"],
+  plan_key: "pro-plan",
+  billing_interval: "monthly",          # optional
+  currency_code: "USD",                 # optional
+  items: [                              # optional: credit/feature quantities
+    { credit_key: "api_credits", quantity: 500 }
+  ],
+  skip_invoice: false                   # optional
+)
+
+puts result["data"]["succeeded"]  # Array of successful assignments
+puts result["data"]["failed"]     # Array of failures with error details
 ```
 
 ### Using Client Instance
