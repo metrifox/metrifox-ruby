@@ -599,6 +599,82 @@ RSpec.describe MetrifoxSDK::Usages::Module do
         .to raise_error(MetrifoxSDK::APIError, /Failed to list usage events: 500/)
     end
   end
+
+  describe "#quantity_price" do
+    let(:expected_response) do
+      {
+        "message" => "Quantity price fetched",
+        "data" => {
+          "customer_key" => customer_key,
+          "feature_key" => "feature_interview_booking",
+          "quantity" => 500,
+          "price" => 3000.0,
+          "unit" => "USD",
+          "applied_tiers" => [
+            {
+              "first_unit" => 1,
+              "last_unit" => 500,
+              "pricing_model" => "per_unit",
+              "unit_price" => 6.0,
+              "units_consumed" => 500,
+              "tier_price" => "3000.0"
+            }
+          ]
+        }
+      }
+    end
+
+    it "computes quantity price for a customer + feature" do
+      stub_request(:get, "#{base_url}usage/quantity-price")
+        .with(
+          query: {
+            customer_key: customer_key,
+            feature_key: "feature_interview_booking",
+            quantity: 500
+          },
+          headers: { 'x-api-key' => api_key }
+        )
+        .to_return(
+          status: 200,
+          body: expected_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = usages_module.quantity_price(
+        customer_key: customer_key,
+        feature_key: "feature_interview_booking",
+        quantity: 500
+      )
+      expect(result).to eq(expected_response)
+      expect(result["data"]["price"]).to eq(3000.0)
+      expect(result["data"]["applied_tiers"].length).to eq(1)
+    end
+
+    it "handles API errors" do
+      stub_request(:get, "#{base_url}usage/quantity-price")
+        .with(query: hash_including(customer_key: customer_key))
+        .to_return(status: 403, body: { message: "Forbidden" }.to_json)
+
+      expect {
+        usages_module.quantity_price(
+          customer_key: customer_key,
+          feature_key: "feature_interview_booking",
+          quantity: 500
+        )
+      }.to raise_error(MetrifoxSDK::APIError, /Failed to compute quantity price: 403/)
+    end
+
+    it "validates API key" do
+      client_with_empty_key = MetrifoxSDK::Client.new(api_key: "")
+      expect {
+        client_with_empty_key.usages.quantity_price(
+          customer_key: customer_key,
+          feature_key: "feature_interview_booking",
+          quantity: 500
+        )
+      }.to raise_error(MetrifoxSDK::ConfigurationError, /API key required/)
+    end
+  end
 end
 
 # Integration tests to verify the modular interface works end-to-end

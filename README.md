@@ -304,6 +304,27 @@ response["data"].each do |event|
 end
 ```
 
+### Compute Quantity Price
+
+Compute the price for a given quantity of a feature for a customer, based on their plan. Useful for previewing upgrade costs or showing the cost of additional usage before a customer commits.
+
+```ruby
+response = METRIFOX_SDK.usages.quantity_price(
+  customer_key: "customer_123",
+  feature_key: "feature_interview_booking",
+  quantity: 500
+)
+
+puts "#{response['data']['price']} #{response['data']['unit']}"
+
+# For tiered pricing, inspect the per-tier breakdown
+response["data"]["applied_tiers"].each do |tier|
+  puts "  Tier #{tier['first_unit']}-#{tier['last_unit']}: #{tier['units_consumed']} units -> #{tier['tier_price']}"
+end
+```
+
+> Only available to tenants whose plan includes the finance API feature.
+
 ### Wallets
 
 ```ruby

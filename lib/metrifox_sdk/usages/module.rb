@@ -24,6 +24,11 @@ module MetrifoxSDK
         api.list_events(meter_service_base_url, api_key, query_params)
       end
 
+      def quantity_price(customer_key:, feature_key:, quantity:)
+        validate_api_key!
+        api.quantity_price(base_url, api_key, customer_key: customer_key, feature_key: feature_key, quantity: quantity)
+      end
+
       def get_tenant_id
         validate_api_key!
         api.fetch_tenant_id(base_url, api_key)

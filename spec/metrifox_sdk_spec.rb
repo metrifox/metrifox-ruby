@@ -131,6 +131,7 @@ RSpec.describe MetrifoxSDK do
       expect(usages).to respond_to(:check_access)
       expect(usages).to respond_to(:record_usage)
       expect(usages).to respond_to(:list_events)
+      expect(usages).to respond_to(:quantity_price)
       expect(usages).to respond_to(:get_tenant_id)
       expect(usages).to respond_to(:get_checkout_key)
     end

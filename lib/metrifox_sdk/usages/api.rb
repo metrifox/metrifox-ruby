@@ -59,6 +59,13 @@ module MetrifoxSDK::Usages
       parse_response(response, "Failed to list usage events")
     end
 
+    def quantity_price(base_url, api_key, customer_key:, feature_key:, quantity:)
+      uri = URI.join(base_url, "usage/quantity-price")
+      uri.query = URI.encode_www_form(customer_key: customer_key, feature_key: feature_key, quantity: quantity)
+      response = make_request(uri, "GET", api_key)
+      parse_response(response, "Failed to compute quantity price")
+    end
+
     def fetch_tenant_id(base_url, api_key)
       uri = URI.join(base_url, "auth/get-tenant-id")
       response = make_request(uri, "GET", api_key)
