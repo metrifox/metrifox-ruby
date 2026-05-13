@@ -44,6 +44,16 @@ module MetrifoxSDK
         delete_customer(request_payload)
       end
 
+      def archive(customer_key)
+        validate_api_key!
+        api.customer_archive_request(base_url, api_key, customer_key)
+      end
+
+      def unarchive(customer_key)
+        validate_api_key!
+        api.customer_unarchive_request(base_url, api_key, customer_key)
+      end
+
       def list(request_payload = {})
         validate_api_key!
         api.customer_list_request(base_url, api_key, request_payload)

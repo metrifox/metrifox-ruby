@@ -41,8 +41,33 @@ RSpec.describe MetrifoxSDK do
       expect(client.web_app_base_url).to eq("https://staging.webapp.com")
     end
 
+    it "creates a client with custom meter service base URL" do
+      client = MetrifoxSDK.init(
+        api_key: "test-key",
+        meter_service_base_url: "https://meter.staging.metrifox.com/"
+      )
+      expect(client.meter_service_base_url).to eq("https://meter.staging.metrifox.com/")
+    end
+
+    it "falls back to METRIFOX_METER_SERVICE_BASE_URL env var" do
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with("METRIFOX_METER_SERVICE_BASE_URL").and_return("https://env-meter.metrifox.com/")
+
+      client = MetrifoxSDK.init(api_key: "test-key")
+      expect(client.meter_service_base_url).to eq("https://env-meter.metrifox.com/")
+    end
+
+    it "defaults meter_service_base_url to the production URL" do
+      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[]).with("METRIFOX_METER_SERVICE_BASE_URL").and_return(nil)
+
+      client = MetrifoxSDK.init(api_key: "test-key")
+      expect(client.meter_service_base_url).to eq(MetrifoxSDK::Client::METER_SERVICE_BASE_URL)
+    end
+
     it "uses environment variable for API key when not provided" do
       allow(MetrifoxSDK::UtilMethods).to receive(:load_dotenv)
+      allow(ENV).to receive(:[]).and_call_original
       allow(ENV).to receive(:[]).with("METRIFOX_API_KEY").and_return("env-api-key")
 
       client = MetrifoxSDK.init
@@ -62,6 +87,11 @@ RSpec.describe MetrifoxSDK do
     it "provides access to subscriptions module" do
       client = MetrifoxSDK.init(api_key: "test-key")
       expect(client.subscriptions).to be_a(MetrifoxSDK::Subscriptions::Module)
+    end
+
+    it "provides access to wallets module" do
+      client = MetrifoxSDK.init(api_key: "test-key")
+      expect(client.wallets).to be_a(MetrifoxSDK::Wallets::Module)
     end
 
     it "returns the same module instance on multiple calls" do
@@ -100,6 +130,7 @@ RSpec.describe MetrifoxSDK do
       usages = client.usages
       expect(usages).to respond_to(:check_access)
       expect(usages).to respond_to(:record_usage)
+      expect(usages).to respond_to(:list_events)
       expect(usages).to respond_to(:get_tenant_id)
       expect(usages).to respond_to(:get_checkout_key)
     end
@@ -109,6 +140,24 @@ RSpec.describe MetrifoxSDK do
       expect(subscriptions).to respond_to(:get_billing_history)
       expect(subscriptions).to respond_to(:get_entitlements_summary)
       expect(subscriptions).to respond_to(:get_entitlements_usage)
+    end
+
+    it "wallets module responds to expected methods" do
+      wallets = client.wallets
+      expect(wallets).to respond_to(:list)
+      expect(wallets).to respond_to(:list_credit_allocations)
+      expect(wallets).to respond_to(:get_credit_allocation)
+    end
+
+    it "customers module responds to archive/unarchive" do
+      customers = client.customers
+      expect(customers).to respond_to(:archive)
+      expect(customers).to respond_to(:unarchive)
+    end
+
+    it "checkout module responds to card_collection_url" do
+      checkout = client.checkout
+      expect(checkout).to respond_to(:card_collection_url)
     end
   end
 end

@@ -882,4 +882,74 @@ RSpec.describe MetrifoxSDK::Customers::Module do
         .to raise_error(MetrifoxSDK::APIError, /Failed to Fetch Customers: 500/)
     end
   end
+
+  describe "#archive" do
+    let(:expected_response) do
+      {
+        "statusCode" => 200,
+        "message" => "Customer Archived Successfully",
+        "data" => {
+          "customer_key" => customer_key,
+          "archived_at" => "2026-05-05T14:30:00Z"
+        }
+      }
+    end
+
+    it "archives a customer successfully" do
+      stub_request(:post, "#{base_url}customers/#{customer_key}/archive")
+        .with(headers: { 'x-api-key' => api_key })
+        .to_return(
+          status: 200,
+          body: expected_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = customers_module.archive(customer_key)
+      expect(result).to eq(expected_response)
+      expect(result["data"]["archived_at"]).to eq("2026-05-05T14:30:00Z")
+    end
+
+    it "handles API errors" do
+      stub_request(:post, "#{base_url}customers/#{customer_key}/archive")
+        .to_return(status: 404, body: { message: "Not found" }.to_json)
+
+      expect { customers_module.archive(customer_key) }
+        .to raise_error(MetrifoxSDK::APIError, /Failed to Archive Customer: 404/)
+    end
+  end
+
+  describe "#unarchive" do
+    let(:expected_response) do
+      {
+        "statusCode" => 200,
+        "message" => "Customer Unarchived Successfully",
+        "data" => {
+          "customer_key" => customer_key,
+          "archived_at" => nil
+        }
+      }
+    end
+
+    it "unarchives a customer successfully" do
+      stub_request(:post, "#{base_url}customers/#{customer_key}/unarchive")
+        .with(headers: { 'x-api-key' => api_key })
+        .to_return(
+          status: 200,
+          body: expected_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = customers_module.unarchive(customer_key)
+      expect(result).to eq(expected_response)
+      expect(result["data"]["archived_at"]).to be_nil
+    end
+
+    it "handles API errors" do
+      stub_request(:post, "#{base_url}customers/#{customer_key}/unarchive")
+        .to_return(status: 404, body: { message: "Not found" }.to_json)
+
+      expect { customers_module.unarchive(customer_key) }
+        .to raise_error(MetrifoxSDK::APIError, /Failed to Unarchive Customer: 404/)
+    end
+  end
 end

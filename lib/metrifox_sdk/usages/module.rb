@@ -14,6 +14,16 @@ module MetrifoxSDK
         api.record_usage(meter_service_base_url, api_key, request_payload)
       end
 
+      def list_events(customer_key: nil, feature_key: nil, page: nil, per_page: nil)
+        validate_api_key!
+        query_params = {}
+        query_params[:customer_key] = customer_key if customer_key
+        query_params[:feature_key] = feature_key if feature_key
+        query_params[:page] = page if page
+        query_params[:per_page] = per_page if per_page
+        api.list_events(meter_service_base_url, api_key, query_params)
+      end
+
       def get_tenant_id
         validate_api_key!
         api.fetch_tenant_id(base_url, api_key)

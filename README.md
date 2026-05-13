@@ -36,6 +36,15 @@ METRIFOX_SDK = MetrifoxSDK.init({ api_key: "your-api-key"})
 ENV["METRIFOX_API_KEY"] = "your-api-key"
 METRIFOX_SDK = MetrifoxSDK.init
 
+# Override base URLs (e.g. for staging or self-hosted environments)
+METRIFOX_SDK = MetrifoxSDK.init({
+  api_key: "your-api-key",
+  base_url: "https://api.staging.metrifox.com/api/v1/",
+  meter_service_base_url: "https://api-meter.staging.metrifox.com/"
+})
+
+# The meter service URL can also be set via env var
+ENV["METRIFOX_METER_SERVICE_BASE_URL"] = "https://api-meter.staging.metrifox.com/"
 ```
 
 ### Access Control
@@ -189,6 +198,12 @@ response = METRIFOX_SDK.customers.list({
 # Delete customer
 response = METRIFOX_SDK.customers.delete_customer({ customer_key: "customer_123" })
 
+# Archive customer
+response = METRIFOX_SDK.customers.archive("customer_123")
+
+# Unarchive customer
+response = METRIFOX_SDK.customers.unarchive("customer_123")
+
 ```
 
 ### Bulk Create Customers
@@ -259,6 +274,55 @@ checkout_config = MetrifoxSDK::Types::CheckoutConfig.new(
 )
 
 checkout_url = METRIFOX_SDK.checkout.url(checkout_config)
+```
+
+### Card Collection URL
+
+Generate a hosted URL for collecting a payment method against an existing subscription or order:
+
+```ruby
+# For a subscription
+url = METRIFOX_SDK.checkout.card_collection_url(subscription_id: "sub_uuid_123")
+
+# For an order
+url = METRIFOX_SDK.checkout.card_collection_url(order_id: "order_uuid_456")
+```
+
+### Usage Events
+
+```ruby
+# List usage events with optional filters and pagination
+response = METRIFOX_SDK.usages.list_events(
+  customer_key: "customer_123",   # optional
+  feature_key: "feature_seats",   # optional
+  page: 1,                        # optional
+  per_page: 25                    # optional
+)
+
+response["data"].each do |event|
+  puts "#{event['feature_key']}: #{event['quantity']} at #{event['timestamp']}"
+end
+```
+
+### Wallets
+
+```ruby
+# List wallets for a customer
+response = METRIFOX_SDK.wallets.list("customer_123")
+response["data"].each do |wallet|
+  puts "#{wallet['name']}: #{wallet['balance']} #{wallet['credit_unit_plural']}"
+end
+
+# List credit allocations for a wallet (optionally filtered by status)
+response = METRIFOX_SDK.wallets.list_credit_allocations("wallet_uuid_123")
+response = METRIFOX_SDK.wallets.list_credit_allocations("wallet_uuid_123", status: "active")
+
+# Get a single credit allocation with its transactions
+response = METRIFOX_SDK.wallets.get_credit_allocation("alloc_uuid_123")
+puts response["data"]["amount"]
+response["data"]["transactions"].each do |txn|
+  puts "  #{txn['amount']} at #{txn['created_at']}"
+end
 ```
 
 ### Subscriptions

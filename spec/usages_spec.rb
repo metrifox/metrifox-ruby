@@ -525,6 +525,80 @@ RSpec.describe MetrifoxSDK::Usages::Module do
       expect(usages_module.send(:base_url)).to eq(base_url)
     end
   end
+
+  describe "#list_events" do
+    let(:events_response) do
+      {
+        "data" => [
+          {
+            "id" => "evt_uuid_1",
+            "event_id" => "client_event_1",
+            "customer_key" => customer_key,
+            "feature_key" => "feature_seats",
+            "quantity" => 1.0,
+            "timestamp" => 1714922200000,
+            "metadata" => {}
+          }
+        ],
+        "meta" => {
+          "current_page" => 1,
+          "next_page" => nil,
+          "prev_page" => nil,
+          "total_count" => 1,
+          "total_pages" => 1,
+          "per_page" => 25
+        }
+      }
+    end
+
+    it "lists usage events with no filters" do
+      stub_request(:get, "#{meter_service_base_url}usage/events")
+        .with(headers: { 'x-api-key' => api_key })
+        .to_return(
+          status: 200,
+          body: events_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = usages_module.list_events
+      expect(result).to eq(events_response)
+      expect(result["data"].first["customer_key"]).to eq(customer_key)
+    end
+
+    it "lists usage events with filters and pagination" do
+      stub_request(:get, "#{meter_service_base_url}usage/events")
+        .with(
+          query: {
+            customer_key: customer_key,
+            feature_key: "feature_seats",
+            page: 1,
+            per_page: 10
+          },
+          headers: { 'x-api-key' => api_key }
+        )
+        .to_return(
+          status: 200,
+          body: events_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = usages_module.list_events(
+        customer_key: customer_key,
+        feature_key: "feature_seats",
+        page: 1,
+        per_page: 10
+      )
+      expect(result["meta"]["current_page"]).to eq(1)
+    end
+
+    it "handles API errors" do
+      stub_request(:get, "#{meter_service_base_url}usage/events")
+        .to_return(status: 500, body: { message: "boom" }.to_json)
+
+      expect { usages_module.list_events }
+        .to raise_error(MetrifoxSDK::APIError, /Failed to list usage events: 500/)
+    end
+  end
 end
 
 # Integration tests to verify the modular interface works end-to-end
