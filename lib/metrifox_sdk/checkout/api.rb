@@ -19,5 +19,13 @@ module MetrifoxSDK::Checkout
       data = parse_response(response, "Failed to generate checkout URL")
       data.dig("data", "checkout_url")
     end
+
+    def generate_card_collection_url(base_url, api_key, query_params)
+      uri = URI.join(base_url, "checkout/generate-card-collection-url")
+      uri.query = URI.encode_www_form(query_params)
+      response = make_request(uri, "GET", api_key)
+      data = parse_response(response, "Failed to generate card collection URL")
+      data.dig("data", "checkout_url")
+    end
   end
 end

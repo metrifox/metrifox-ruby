@@ -47,6 +47,18 @@ module MetrifoxSDK::Customers
       parse_response(response, "Failed to Check Active Subscription")
     end
 
+    def customer_archive_request(base_url, api_key, customer_key)
+      uri = URI.join(base_url, "customers/#{customer_key}/archive")
+      response = make_request(uri, "POST", api_key)
+      parse_response(response, "Failed to Archive Customer")
+    end
+
+    def customer_unarchive_request(base_url, api_key, customer_key)
+      uri = URI.join(base_url, "customers/#{customer_key}/unarchive")
+      response = make_request(uri, "POST", api_key)
+      parse_response(response, "Failed to Unarchive Customer")
+    end
+
     def customer_list_request(base_url, api_key, request_payload = {})
       uri = URI.join(base_url, "customers")
       

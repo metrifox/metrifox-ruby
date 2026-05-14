@@ -15,7 +15,7 @@ module MetrifoxSDK
       @api_key = config[:api_key] || get_api_key_from_environment
       @base_url = config[:base_url] || DEFAULT_BASE_URL
       @web_app_base_url = config[:web_app_base_url] || DEFAULT_WEB_APP_BASE_URL
-      @meter_service_base_url = METER_SERVICE_BASE_URL
+      @meter_service_base_url = config[:meter_service_base_url] || ENV["METRIFOX_METER_SERVICE_BASE_URL"] || METER_SERVICE_BASE_URL
     end
 
     def customers
@@ -32,6 +32,10 @@ module MetrifoxSDK
 
     def subscriptions
       @subscriptions ||= Subscriptions::Module.new(self)
+    end
+
+    def wallets
+      @wallets ||= Wallets::Module.new(self)
     end
 
     private

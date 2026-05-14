@@ -128,8 +128,68 @@ RSpec.describe MetrifoxSDK::Checkout::Module do
     it "validates API key is not empty" do
       client_with_empty_key = MetrifoxSDK::Client.new(api_key: "")
       checkout_module_empty_key = client_with_empty_key.checkout
-      
+
       expect { checkout_module_empty_key.url({ offering_key: "premium_plan" }) }
+        .to raise_error(MetrifoxSDK::ConfigurationError, /API key required/)
+    end
+  end
+
+  describe "#card_collection_url" do
+    let(:card_url) { "https://checkout.example.com/card-collection/abc123" }
+    let(:card_response) do
+      {
+        "statusCode" => 200,
+        "message" => "Card collection URL generated successfully",
+        "data" => { "checkout_url" => card_url }
+      }
+    end
+
+    it "generates a card collection URL for a subscription" do
+      stub_request(:get, "#{base_url}checkout/generate-card-collection-url?subscription_id=sub_uuid_123")
+        .with(headers: { 'x-api-key' => api_key })
+        .to_return(
+          status: 200,
+          body: card_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = checkout_module.card_collection_url(subscription_id: "sub_uuid_123")
+      expect(result).to eq(card_url)
+    end
+
+    it "generates a card collection URL for an order" do
+      stub_request(:get, "#{base_url}checkout/generate-card-collection-url?order_id=order_uuid_456")
+        .with(headers: { 'x-api-key' => api_key })
+        .to_return(
+          status: 200,
+          body: card_response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = checkout_module.card_collection_url(order_id: "order_uuid_456")
+      expect(result).to eq(card_url)
+    end
+
+    it "raises when neither subscription_id nor order_id is provided" do
+      expect { checkout_module.card_collection_url }
+        .to raise_error(ArgumentError, /Either subscription_id or order_id is required/)
+    end
+
+    it "raises when API returns an empty URL" do
+      stub_request(:get, "#{base_url}checkout/generate-card-collection-url?subscription_id=sub_uuid_123")
+        .to_return(
+          status: 200,
+          body: { "data" => { "checkout_url" => "" } }.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      expect { checkout_module.card_collection_url(subscription_id: "sub_uuid_123") }
+        .to raise_error(StandardError, /Card collection URL could not be generated/)
+    end
+
+    it "validates API key" do
+      client_with_empty_key = MetrifoxSDK::Client.new(api_key: "")
+      expect { client_with_empty_key.checkout.card_collection_url(subscription_id: "sub_uuid_123") }
         .to raise_error(MetrifoxSDK::ConfigurationError, /API key required/)
     end
   end

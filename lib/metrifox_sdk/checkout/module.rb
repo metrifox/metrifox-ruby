@@ -26,6 +26,23 @@ module MetrifoxSDK
         checkout_url
       end
 
+      def card_collection_url(subscription_id: nil, order_id: nil)
+        validate_api_key!
+
+        if (subscription_id.nil? || subscription_id.to_s.empty?) && (order_id.nil? || order_id.to_s.empty?)
+          raise ArgumentError, "Either subscription_id or order_id is required"
+        end
+
+        query_params = {}
+        query_params[:subscription_id] = subscription_id if subscription_id && !subscription_id.to_s.empty?
+        query_params[:order_id] = order_id if order_id && !order_id.to_s.empty?
+
+        checkout_url = api.generate_card_collection_url(base_url, api_key, query_params)
+        raise StandardError, "Card collection URL could not be generated" if checkout_url.nil? || checkout_url.empty?
+
+        checkout_url
+      end
+
       private
 
       def get_checkout_key

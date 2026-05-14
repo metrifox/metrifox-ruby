@@ -11,6 +11,8 @@ require_relative "metrifox_sdk/checkout/api"
 require_relative "metrifox_sdk/checkout/module"
 require_relative "metrifox_sdk/subscriptions/api"
 require_relative "metrifox_sdk/subscriptions/module"
+require_relative "metrifox_sdk/wallets/api"
+require_relative "metrifox_sdk/wallets/module"
 
 module MetrifoxSDK
   class << self
