@@ -1,0 +1,17 @@
+version: 2
+# Dependabot is intentionally scoped to GitHub Actions only.
+# Vulnerable gems are caught at the PR gate (dependency-review + bundler-audit)
+# and insecure first-party code by CodeQL, so Dependabot's sole job here is
+# keeping the SHA-pinned actions current — it bumps the pinned commit SHA and
+# the `# vX.Y.Z` comment together in a reviewable PR.
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
+    groups:
+      github-actions:
+        patterns:
+          - "*"
