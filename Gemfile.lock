@@ -43,7 +43,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
     rspec-support (3.13.5)
-    uri (0.13.2)
+    uri (0.13.3)
     webmock (3.25.1)
       addressable (>= 2.8.0)
       crack (>= 0.3.2)

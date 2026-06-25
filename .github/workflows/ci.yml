@@ -12,10 +12,11 @@ jobs:
         ruby-version: ['3.2', '3.3']
 
     steps:
-      - uses: actions/checkout@v4
+      # Pinned to full commit SHAs to prevent supply-chain attacks via mutated tags.
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Set up Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # v1.207.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true

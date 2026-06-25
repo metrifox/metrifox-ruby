@@ -1,0 +1,70 @@
+name: Security
+
+on:
+  pull_request:
+    branches: [main]
+
+# Least-privilege default; individual jobs widen scope only where required.
+permissions:
+  contents: read
+
+jobs:
+  # Blocks a PR that ADDS (or bumps to) a gem with a known high/critical
+  # advisory. Operates on the PR diff, so reviewers get a clear "this change
+  # introduced the vuln" signal.
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    steps:
+      # All third-party actions are pinned to a full-length commit SHA (not a
+      # moving tag) to prevent supply-chain attacks via mutated/retagged refs.
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@3b139cfc5fae8b618d3eae3675e383bb1769c019 # v4.5.0
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
+
+  # Auto-discovers EVERY Gemfile.lock in the repo and audits each against the
+  # ruby-advisory-db, so a newly added nested folder is covered automatically —
+  # no hardcoded path list to forget. Shipped paths BLOCK the PR; test / demo /
+  # example / blind-spot paths are report-only.
+  bundler-audit:
+    name: bundler-audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # v1.207.0
+        with:
+          ruby-version: '3.3'
+
+      # Pinned version to keep the tool off the supply-chain attack surface.
+      - name: Install bundler-audit
+        run: gem install bundler-audit -v 0.9.3
+
+      # Logic lives in a script file so the Actions log stays clean — only this
+      # one line is echoed, not a 40-line inline block.
+      - name: Audit every Gemfile.lock (block shipped, report-only test/demo)
+        run: bash .github/scripts/bundler-audit.sh
+
+  # Static analysis (SAST) for the SDK source — catches injection/insecure
+  # patterns in our own code, complementing the dependency checks above.
+  codeql:
+    name: CodeQL analysis
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@df409f7d9260372bd5f19e5b04e83cb3c43714ae # v3.27.9
+        with:
+          languages: ruby
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@df409f7d9260372bd5f19e5b04e83cb3c43714ae # v3.27.9
