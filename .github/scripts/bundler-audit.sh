@@ -36,13 +36,16 @@ while IFS= read -r lock; do
     printf '|-----|---------|----------|----------|--------|------------|\n'
   } >> "$GITHUB_STEP_SUMMARY"
   # Per-finding status (report-only if its dir is report-only OR its advisory id
-  # is allow-listed). awk exits 1 if any finding blocks.
+  # is allow-listed). awk writes the table to the Summary, a plain list to the
+  # step log (stdout), and one annotation per finding. Exits 1 if any blocks.
+  printf -- '── %s — %s findings ──\n' "$dir" "$dir_mode"
   if ! printf '%s\n' "$out" | awk -v dir_mode="$dir_mode" -v allow=" $REPORT_ONLY_IDS " '
     function flush(){ if(name=="")return; adv=(cve!=""?cve:ghsa);
       ro=(dir_mode=="report-only");
       if(index(allow," " cve " ")>0 || index(allow," " ghsa " ")>0) ro=1;
       status=ro?"🟡 report-only":"🔴 blocking";
       printf("| %s | %s | %s | [%s](%s) | %s | %s |\n",name,ver,crit,adv,url,status,sol) >> ENVIRON["GITHUB_STEP_SUMMARY"];
+      printf("  • %s %s (%s %s, %s) — %s\n",name,ver,crit,adv,(ro?"report-only":"blocking"),sol);
       if(ro) printf("::warning::%s %s (%s %s, report-only) — %s\n",name,ver,crit,adv,sol);
       else { printf("::error::%s %s (%s %s) — %s\n",name,ver,crit,adv,sol); blocking++ }
       name=ver=cve=ghsa=crit=url=sol="" }
