@@ -33,6 +33,7 @@ module MetrifoxSDK::Usages
       event_id = get_value(request_payload, :event_id)
       timestamp = get_value(request_payload, :timestamp)
       metadata = get_value(request_payload, :metadata) || {}
+      properties = get_value(request_payload, :properties) || {}
       feature_key = get_value(request_payload, :feature_key)
 
       body = {
@@ -45,6 +46,7 @@ module MetrifoxSDK::Usages
       body[:credit_used] = credit_used if credit_used
       body[:timestamp] = timestamp if timestamp
       body[:metadata] = metadata if metadata
+      body[:properties] = properties unless properties.empty?
       body[:feature_key] = feature_key if feature_key
       body[:event_name] = event_name if event_name
 

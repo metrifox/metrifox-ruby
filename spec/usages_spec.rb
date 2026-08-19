@@ -172,7 +172,7 @@ RSpec.describe MetrifoxSDK::Usages::Module do
       expect(result["message"]).to eq("Event received")
     end
 
-    it "defaults amount to 1 when not provided" do
+    it "defaults quantity to 1 when not provided" do
       usage_request_no_amount = {
         customer_key: customer_key,
         event_name: "api_call",
@@ -291,6 +291,45 @@ RSpec.describe MetrifoxSDK::Usages::Module do
       expect(result["data"]["quantity"]).to eq(2)
     end
 
+    it "records usage with aggregation properties" do
+      usage_request_with_properties = {
+        customer_key: customer_key,
+        feature_key: "feature_active_users",
+        event_id: "evt_unique_123",
+        properties: {
+          workspace_id: "workspace_42",
+          user_id: "user_7"
+        }
+      }
+
+      stub_request(:post, "#{meter_service_base_url}usage/events")
+        .with(
+          headers: {
+            'x-api-key' => api_key,
+            'Content-Type' => 'application/json'
+          },
+          body: {
+            customer_key: customer_key,
+            quantity: 1,
+            event_id: "evt_unique_123",
+            metadata: {},
+            properties: {
+              workspace_id: "workspace_42",
+              user_id: "user_7"
+            },
+            feature_key: "feature_active_users"
+          }.to_json
+        )
+        .to_return(
+          status: 201,
+          body: response.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      result = usages_module.record_usage(usage_request_with_properties)
+      expect(result["message"]).to eq("Event received")
+    end
+
     it "records usage with UsageEventRequest struct" do
       struct_request = MetrifoxSDK::Types::UsageEventRequest.new(
         customer_key: customer_key,
@@ -299,7 +338,8 @@ RSpec.describe MetrifoxSDK::Usages::Module do
         credit_used: 3,
         event_id: "struct_event_123",
         timestamp: 1640995200,
-        metadata: { source: "test_struct" }
+        metadata: { source: "test_struct" },
+        properties: { workspace_id: "workspace_42" }
       )
 
       expected_body = {
@@ -309,6 +349,7 @@ RSpec.describe MetrifoxSDK::Usages::Module do
         credit_used: 3,
         timestamp: 1640995200,
         metadata: { source: "test_struct" },
+        properties: { workspace_id: "workspace_42" },
         event_name: "struct_event"
       }
 
