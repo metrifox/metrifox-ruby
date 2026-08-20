@@ -87,7 +87,7 @@ Example response payload:
 response = METRIFOX_SDK.usages.record_usage({
   customer_key: "customer_123",
   event_name: "api_call",
-  amount: 1,
+  quantity: 1,
   event_id: "evt_12345", # required idempotency key
   timestamp: (Time.now.to_f * 1000).to_i # recommended (milliseconds)
 })
@@ -104,25 +104,34 @@ The usage event endpoint now returns a simple payload with the recorded `data` a
 response = METRIFOX_SDK.usages.record_usage({
   customer_key: "customer_123",
   event_name: "api_call", # Or use feature_key
-  amount: 1,
+  quantity: 1,
   event_id: "event_uuid_123", # required idempotency key
   credit_used: 5,
   timestamp: (Time.now.to_f * 1000).to_i,
   metadata: {
     source: "web_app",
     feature: "premium_search"
+  },
+  properties: {
+    workspace_id: "workspace_42",
+    user_id: "user_7"
   }
 })
+
+# For a count_unique feature, properties must include every property configured
+# in the feature's aggregation_properties. Metadata is contextual only and does
+# not participate in usage aggregation.
 
 # Using structured request object
 usage_request = MetrifoxSDK::Types::UsageEventRequest.new(
   customer_key: "customer_123",
   feature_key: "feat_my_feat_234", # OR use event_name
-  amount: 1,
+  quantity: 1,
   credit_used: 5,
   event_id: "event_uuid_123",
   timestamp: (Time.now.to_f * 1000).to_i,
-  metadata: { source: "mobile_app" }
+  metadata: { source: "mobile_app" },
+  properties: { workspace_id: "workspace_42", user_id: "user_7" }
 )
 
 response = METRIFOX_SDK.usages.record_usage(usage_request)
@@ -405,7 +414,7 @@ The SDK exposes lightweight structs for the usage and checkout helpers when you 
 usage_request = MetrifoxSDK::Types::UsageEventRequest.new(
   customer_key: "customer_123",
   feature_key: "feature_seats",
-  amount: 1,
+  quantity: 1,
   event_id: "event_uuid_123",
   timestamp: (Time.now.to_f * 1000).to_i,
   metadata: { source: "mobile_app" }
