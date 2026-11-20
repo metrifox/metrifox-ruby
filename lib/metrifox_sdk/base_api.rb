@@ -47,13 +47,36 @@ module MetrifoxSDK
     end
 
     def parse_response(response, error_message)
-      unless response.is_a?(Net::HTTPSuccess)
-        raise APIError, "#{error_message}: #{response.code} #{response.message}"
-      end
+      raise_api_error(response, error_message) unless response.is_a?(Net::HTTPSuccess)
 
       JSON.parse(response.body)
     rescue JSON::ParserError => e
       raise APIError, "Invalid JSON response: #{e.message}"
+    end
+
+    def raise_api_error(response, error_message)
+      body = parse_error_body(response.body)
+      reason = error_reason(body)
+      message = "#{error_message}: #{[response.code, response.message].join(' ').strip}"
+      message += " - #{reason}" if reason
+
+      raise APIError.new(message, status: response.code.to_i, body: body)
+    end
+
+    def parse_error_body(raw_body)
+      return nil if raw_body.nil? || raw_body.strip.empty?
+
+      JSON.parse(raw_body)
+    rescue JSON::ParserError
+      raw_body
+    end
+
+    # The API puts the reason in "message", as a string or a list of strings.
+    def error_reason(body)
+      reason = body.is_a?(Hash) ? body["message"] : body
+      reason = reason.join(", ") if reason.is_a?(Array)
+      reason = reason.to_s.strip
+      reason.empty? ? nil : reason[0, 500]
     end
 
     def build_multipart_body(file_path, boundary)
@@ -78,5 +101,13 @@ module MetrifoxSDK
     end
   end
 
-  class APIError < StandardError; end
+  class APIError < StandardError
+    attr_reader :status, :body
+
+    def initialize(message = nil, status: nil, body: nil)
+      super(message)
+      @status = status
+      @body = body
+    end
+  end
 end

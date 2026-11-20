@@ -164,6 +164,51 @@ RSpec.describe MetrifoxSDK::Customers::Module do
         .to raise_error(MetrifoxSDK::APIError, /Failed to Create Customer: 400/)
     end
 
+    it "includes the API's reason, status and body in the error" do
+      stub_request(:post, "#{base_url}customers/new")
+        .to_return(
+          status: [422, "Unprocessable Content"],
+          body: { "message" => "Primary email has already been registered", "data" => {}, "errors" => {} }.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      expect { customers_module.create(customer_payload) }
+        .to raise_error(MetrifoxSDK::APIError) { |error|
+          expect(error.message).to eq("Failed to Create Customer: 422 Unprocessable Content - Primary email has already been registered")
+          expect(error.status).to eq(422)
+          expect(error.body).to include("message" => "Primary email has already been registered")
+        }
+    end
+
+    it "joins a list of reasons from the API" do
+      stub_request(:post, "#{base_url}customers/new")
+        .to_return(status: 422, body: { "message" => ["Email is invalid", "Name is required"] }.to_json)
+
+      expect { customers_module.create(customer_payload) }
+        .to raise_error(MetrifoxSDK::APIError, /: 422 - Email is invalid, Name is required\z/)
+    end
+
+    it "keeps a non-JSON error body as the reason" do
+      stub_request(:post, "#{base_url}customers/new")
+        .to_return(status: 502, body: "Bad Gateway")
+
+      expect { customers_module.create(customer_payload) }
+        .to raise_error(MetrifoxSDK::APIError) { |error|
+          expect(error.message).to end_with(" - Bad Gateway")
+          expect(error.body).to eq("Bad Gateway")
+        }
+    end
+
+    it "omits the reason when the error body is empty" do
+      stub_request(:post, "#{base_url}customers/new").to_return(status: 500, body: "")
+
+      expect { customers_module.create(customer_payload) }
+        .to raise_error(MetrifoxSDK::APIError) { |error|
+          expect(error.message).not_to include(" - ")
+          expect(error.body).to be_nil
+        }
+    end
+
     it "validates API key is not empty string" do
       client_with_empty_key = MetrifoxSDK::Client.new(api_key: "")
       customers_module_empty_key = client_with_empty_key.customers
