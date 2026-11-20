@@ -447,6 +447,10 @@ rescue MetrifoxSDK::ConfigurationError => e
 end
 ```
 
+`APIError#message` includes the reason the API gave, for example
+`Failed to Create Customer: 422 Unprocessable Content - Primary email has already been registered`.
+`e.status` holds the HTTP status code and `e.body` holds the parsed response body.
+
 ## SSL Certificate Handling
 
 The SDK configures a custom `OpenSSL::X509::Store` with system default certificate paths for all HTTPS requests. This ensures reliable SSL connections across different Ruby and OpenSSL versions, including environments where strict CRL (Certificate Revocation List) checking may cause verification failures.

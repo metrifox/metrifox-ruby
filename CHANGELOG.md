@@ -3,6 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Include the API's error reason in `APIError#message`, and expose the HTTP status and response body as `APIError#status` and `APIError#body`.
 
 ## [1.3.0]
 - Add `wallets` module with `list`, `list_credit_allocations`, and `get_credit_allocation` methods.
